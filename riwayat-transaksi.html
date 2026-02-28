@@ -84,6 +84,13 @@
         .color-proses { color: var(--warning); }
         .color-berhasil { color: var(--success); }
 
+        .btn-wa-check {
+            display: inline-block; margin-top: 8px; padding: 4px 10px;
+            background: rgba(37, 211, 102, 0.1); border: 1px solid var(--success);
+            border-radius: 6px; color: var(--success); font-size: 0.6rem;
+            text-decoration: none; font-weight: 600;
+        }
+
         .empty-state { text-align: center; padding: 60px 0; opacity: 0.4; font-size: 0.75rem; }
     </style>
 </head>
@@ -125,6 +132,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const adminWA = "6283819531840"; // Nomor WA Admin sesuai permintaan
 
         window.openTab = function(evt, tabId) {
             let i, tabcontent, tablinks;
@@ -146,6 +154,9 @@
                 lineClass = "line-berhasil"; iconClass = "fa-check-circle"; colorClass = "color-berhasil"; 
             }
 
+            // Pesan otomatis WA
+            const waMsg = encodeURIComponent(`Halo Admin Warung 757, saya ingin menanyakan status pesanan saya:\n\nID: ${data.id}\nProduk: ${data.product}\nStatus: ${data.status}`);
+
             return `
                 <div class="history-card">
                     <div class="status-line ${lineClass}"></div>
@@ -153,6 +164,9 @@
                         <h4>${data.product}</h4>
                         <p><i class="far fa-clock"></i> ${data.date}</p>
                         <span class="trx-id">#${data.id.toUpperCase()}</span>
+                        <a href="https://wa.me/${adminWA}?text=${waMsg}" class="btn-wa-check">
+                            <i class="fab fa-whatsapp"></i> Hubungi Admin
+                        </a>
                     </div>
                     <div class="info-right">
                         <div class="price">Rp ${(parseInt(data.price) || 0).toLocaleString('id-ID')}</div>
@@ -168,23 +182,20 @@
             onValue(trxRef, (snapshot) => {
                 const firebaseData = snapshot.val() || {};
 
-                // Menggunakan 'zepetoHistory' agar sinkron dengan file Topup Roblox sebelumnya
-                let myOrders = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
+                // Gabungkan riwayat dari 'robloxHistory' dan 'zepetoHistory' agar semua muncul di sini
+                let roblox = JSON.parse(localStorage.getItem('robloxHistory')) || [];
+                let zepeto = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
+                let allOrders = [...roblox, ...zepeto];
 
-                // Pembersihan otomatis data lama (3 hari yang sudah berhasil)
-                const threeDaysAgo = Date.now() - (3 * 24 * 60 * 60 * 1000);
-                myOrders = myOrders.filter(item => {
-                    const trx = firebaseData[item.id];
-                    if(trx && trx.timestamp < threeDaysAgo && trx.status === 'BERHASIL') return false;
-                    return true;
-                });
-                localStorage.setItem('zepetoHistory', JSON.stringify(myOrders));
+                // Hapus duplikat ID jika ada
+                let myOrders = allOrders.filter((v,i,a)=>a.findIndex(t=>(t.id === v.id))===i);
+
+                // Urutkan berdasarkan waktu terbaru (asumsi ID mengandung timestamp atau data date bisa diparse)
+                myOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 let html = { proses: "", berhasil: "", batal: "" };
 
-                // Memproses data berdasarkan urutan terbaru
                 myOrders.forEach(localItem => {
-                    // Cek data di Firebase, jika tidak ada (mungkin dihapus admin), gunakan data lokal sementara
                     const data = firebaseData[localItem.id] || localItem;
                     const status = data.status.toUpperCase();
 
@@ -193,7 +204,6 @@
                     } else if (status === 'BERHASIL') { 
                         html.berhasil += createCard(data, 'berhasil'); 
                     } else { 
-                        // Mencakup status 'DIPROSES' atau status lainnya
                         html.proses += createCard(data, 'proses'); 
                     }
                 });
