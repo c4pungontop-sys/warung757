@@ -259,7 +259,6 @@
         window.currentTotalPrice = 0;
         window.chosenMethod = null;
 
-        // Ambil Rate dari Firebase (admin-757.html)
         onValue(ref(db, 'settings/zvg_rate'), (snap) => {
             const rate = snap.val();
             if(rate) {
@@ -311,7 +310,7 @@
             const fileItem = document.getElementById('item-photo').files[0];
 
             if(!idz || !nickname) return triggerShake('card-step-1');
-            if(!fileItem) return triggerShake('item-zone'); // Validasi Foto Item Wajib
+            if(!fileItem) return triggerShake('item-zone'); 
             if(!jumlah || jumlah <= 0) return triggerShake('card-step-2');
             if(!window.chosenMethod) return triggerShake('card-step-3');
             if(!email) return triggerShake('card-step-4');
@@ -319,15 +318,20 @@
             document.getElementById('textTotal').innerText = "Rp " + window.currentTotalPrice.toLocaleString('id-ID');
             document.getElementById('modalPayment').style.display = 'flex';
 
+            const qrImg = document.getElementById('qrImg');
             if(window.chosenMethod === "BCA") {
                 document.getElementById('qrArea').style.display = 'none';
                 document.getElementById('bankArea').style.display = 'block';
+            } else if (window.chosenMethod === "QRIS DANA ONLY") {
+                document.getElementById('bankArea').style.display = 'none';
+                document.getElementById('qrArea').style.display = 'block';
+                // Link QRIS DANA (Samakan dengan checkout-akun)
+                qrImg.src = "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg";
             } else {
                 document.getElementById('bankArea').style.display = 'none';
                 document.getElementById('qrArea').style.display = 'block';
-                const qrImg = document.getElementById('qrImg');
-                // Link QRIS DANA disamakan dengan AWZ
-                qrImg.src = (window.chosenMethod === "QRIS DANA ONLY") ? "https://i.ibb.co/s9dtdcP9/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg" : "https://i.ibb.co/6RcGf5ZC/1772040416685.png";
+                // Link QRIS ALL (Samakan dengan checkout-akun)
+                qrImg.src = "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
             }
         };
 
@@ -391,7 +395,7 @@
                     }]
                 }));
                 formData.append('file1', fileBukti);
-                formData.append('file2', fileItem); // Wajib dikirim
+                formData.append('file2', fileItem); 
 
                 await fetch("https://discord.com/api/webhooks/1475926927540883536/XRXzVRSB052l6_eDgK7S_nAc_iEbH0VH3xexlDdn_gbtDis98Cj_rrgMUm-qviGBE3Fi", { method: 'POST', body: formData });
 
