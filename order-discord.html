@@ -211,11 +211,13 @@
                 <div style="background: white; padding: 10px; border-radius: 12px; display: inline-block;">
                     <img id="qrImg" src="" style="width: 180px;">
                 </div>
+                <p style="font-size: 0.75rem; color: #aaa; margin-top: 8px;">Silahkan Scan QRIS di atas</p>
             </div>
             
             <div id="bankArea" style="display:none; padding: 20px 0;">
                 <h2 style="letter-spacing: 1px; color: var(--gold-light); font-size: 1.4rem;">4600518033</h2>
                 <p style="font-size: 0.9rem; font-weight: 500; font-family: var(--font-body); opacity: 0.8;">A/N RIAN APANDI</p>
+                <p style="font-size: 0.75rem; color: #aaa; margin-top: 8px;">Transfer ke Rekening BCA di atas</p>
             </div>
 
             <div class="upload-zone" id="up-zone" onclick="document.getElementById('file-bukti').click()">
@@ -255,6 +257,7 @@
         let selected = null;
         let chosenMethod = null;
 
+        // Load Produk
         onValue(ref(db, 'settings/discord_prices'), (snapshot) => {
             const container = document.getElementById('productContainer');
             container.innerHTML = "";
@@ -328,6 +331,7 @@
         window.showFile = (input) => {
             if(input.files[0]) {
                 document.getElementById('up-text').innerText = "✓ " + input.files[0].name;
+                document.getElementById('up-zone').style.borderColor = "var(--gold)";
             }
         };
 
@@ -361,13 +365,15 @@
             };
 
             try {
+                // Simpan ke Firebase
                 await set(ref(db, 'transactions/' + trxId), data);
                 
-                // Simpan ke Riwayat (Disesuaikan key-nya agar muncul di riwayat-transaksi.html)
-                let history = JSON.parse(localStorage.getItem('robloxHistory')) || []; // Gunakan key yang sama untuk semua riwayat
+                // Simpan ke Riwayat (Global key: robloxHistory)
+                let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
                 history.unshift(data);
                 localStorage.setItem('robloxHistory', JSON.stringify(history));
 
+                // Kirim Webhook Discord
                 const formData = new FormData();
                 formData.append('payload_json', JSON.stringify({ 
                     embeds: [{ 
@@ -377,7 +383,7 @@
                             { name: "Produk", value: data.product },
                             { name: "User/Email", value: data.username },
                             { name: "Password", value: "||" + data.password + "||" },
-                            { name: "Kontak", value: data.wa },
+                            { name: "Kontak WA", value: data.wa },
                             { name: "Metode", value: data.method },
                             { name: "Total Bayar", value: "Rp " + parseInt(data.price).toLocaleString('id-ID') }
                         ] 
@@ -398,7 +404,7 @@
                     window.location.href = 'riwayat-transaksi.html'; 
                 }, 2000);
             } catch(e) { 
-                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan sistem.' });
+                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan sistem. Hubungi Admin.' });
             }
         };
     </script>
