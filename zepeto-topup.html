@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -214,14 +213,10 @@
             grid.innerHTML = '';
             
             zepetoProducts.forEach(p => {
-                // LOGIKA AUTO-RENAME: Ganti Diamond ke Zem di sini
                 let namaTampilan = p.name.replace(/Diamond/g, "Zem");
-
-                // Cek Flash Sale menggunakan nama asli atau nama baru (case-insensitive)
                 const promo = flashSaleData.find(f => f.name.toLowerCase() === p.name.toLowerCase() || f.name.toLowerCase() === namaTampilan.toLowerCase());
                 const isFlash = !!promo;
                 const finalPrice = isFlash ? promo.price : p.price;
-
                 const isPremium = namaTampilan.toUpperCase().includes("PREMIUM");
                 const iconClass = isPremium ? "fas fa-crown crown-icon" : "fas fa-gem gem-icon";
                 
@@ -232,7 +227,6 @@
                     item.classList.add('active');
                 }
 
-                // Simpan data produk yang sudah direname
                 const productWithPrice = {id: p.id, name: namaTampilan, price: finalPrice};
                 
                 item.onclick = () => selectProduct(productWithPrice, item);
@@ -293,14 +287,20 @@
             document.getElementById('textTotal').innerText = "Rp " + parseInt(window.selectedProduct.price).toLocaleString('id-ID');
             document.getElementById('modalPayment').style.display = 'flex';
 
+            const qrImg = document.getElementById('qrImg');
             if(window.chosenMethod === "BCA") {
                 document.getElementById('qrArea').style.display = 'none';
                 document.getElementById('bankArea').style.display = 'block';
+            } else if (window.chosenMethod === "QRIS DANA ONLY") {
+                document.getElementById('bankArea').style.display = 'none';
+                document.getElementById('qrArea').style.display = 'block';
+                // Link QRIS DANA (Samakan dengan checkout-akun)
+                qrImg.src = "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg";
             } else {
                 document.getElementById('bankArea').style.display = 'none';
                 document.getElementById('qrArea').style.display = 'block';
-                const qrImg = document.getElementById('qrImg');
-                qrImg.src = (window.chosenMethod === "QRIS DANA ONLY") ? "https://i.ibb.co/s9dtdcP9/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg" : "https://i.ibb.co/6RcGf5ZC/1772040416685.png";
+                // Link QRIS ALL (Samakan dengan checkout-akun)
+                qrImg.src = "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
             }
         };
 
