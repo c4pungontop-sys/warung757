@@ -315,14 +315,23 @@
         window.openReport = () => { closeAll(); document.getElementById('modalReport').classList.add('active'); document.getElementById('overlay').style.display = 'block'; };
         window.closeReport = () => closeAll();
 
-        // PERBAIKAN: Fungsi pembersihan URL yang lebih kuat
+        // PERBAIKAN STABILITAS GAMBAR: Memaksa HTTPS dan membersihkan spasi/karakter ilegal
         function cleanUrl(u) { 
             if (!u || u === 'undefined' || u === '') return 'https://via.placeholder.com/300x300?text=No+Image';
-            if (typeof u === 'string' && u.includes('<img')) {
-                const match = u.match(/src=["']([^"']+)["']/);
-                return match ? match[1] : u;
+            
+            let url = u.trim();
+            // Jika link masih http, paksa jadi https agar tidak kena blokir Mixed Content
+            if (url.startsWith('http://')) {
+                url = url.replace('http://', 'https://');
             }
-            return u; 
+            
+            // Jika link adalah tag img (sering terjadi salah input di database)
+            if (url.includes('<img')) {
+                const match = url.match(/src=["']([^"']+)["']/);
+                url = match ? match[1] : url;
+            }
+            
+            return url; 
         }
 
         let allCategories = {};
@@ -366,7 +375,7 @@
                     <a href="${isOpen ? (c.link || '#') : 'javascript:void(0)'}" class="category-card-medium ${statusClass}">
                         <div class="cat-status-label ${badgeClass}">${statusText}</div>
                         <div class="cat-img-box-large">
-                            <img src="${cleanUrl(c.image)}" onerror="this.src='https://via.placeholder.com/150?text=Error'" class="cat-game-img">
+                            <img src="${cleanUrl(c.image)}" loading="lazy" crossorigin="anonymous" onerror="this.src='https://via.placeholder.com/150?text=Error'" class="cat-game-img">
                         </div>
                         <span class="cat-name-bold">${c.name.toUpperCase()}</span>
                     </a>`;
@@ -394,7 +403,7 @@
             }
 
             if(data.banners) {
-                document.getElementById('banner-display-list').innerHTML = data.banners.map(u => `<div class="swiper-slide"><img src="${cleanUrl(u)}" onerror="this.src='https://via.placeholder.com/800x400?text=Banner+Mati'"></div>`).join('');
+                document.getElementById('banner-display-list').innerHTML = data.banners.map(u => `<div class="swiper-slide"><img src="${cleanUrl(u)}" loading="lazy" crossorigin="anonymous" onerror="this.src='https://via.placeholder.com/800x400?text=Banner+Mati'"></div>`).join('');
                 new Swiper(".swiper-banner", { loop: true, pagination: { el: ".swiper-pagination" }, autoplay: { delay: 3000 } });
             }
 
@@ -416,12 +425,11 @@
                 document.getElementById('stock-display-list').innerHTML = Object.keys(data.account_stocks).map(k => {
                     const i = data.account_stocks[k];
                     const ready = i.qty > 0;
-                    return `<div class="swiper-slide"><div class="stock-card" onclick="${ready ? `location.href='checkout-akun.html?id=${k}'` : ''}"><div class="stock-status-badge ${ready?'status-ready':'status-sold'}">${ready?'READY':'SOLD'}</div><div class="stock-img-box"><img src="${cleanUrl(i.image)}" onerror="this.src='https://via.placeholder.com/300?text=No+Image'"></div><div class="stock-details"><h4>${i.title}</h4><div style="display:flex; justify-content:space-between; align-items:center;"><span style="color:var(--gold-light); font-weight:800; font-size:0.8rem;">Rp ${i.price.toLocaleString()}</span></div></div></div></div>`;
+                    return `<div class="swiper-slide"><div class="stock-card" onclick="${ready ? `location.href='checkout-akun.html?id=${k}'` : ''}"><div class="stock-status-badge ${ready?'status-ready':'status-sold'}">${ready?'READY':'SOLD'}</div><div class="stock-img-box"><img src="${cleanUrl(i.image)}" loading="lazy" crossorigin="anonymous" onerror="this.src='https://via.placeholder.com/300?text=No+Image'"></div><div class="stock-details"><h4>${i.title}</h4><div style="display:flex; justify-content:space-between; align-items:center;"><span style="color:var(--gold-light); font-weight:800; font-size:0.8rem;">Rp ${i.price.toLocaleString()}</span></div></div></div></div>`;
                 }).join('');
                 new Swiper(".stock-swiper", { slidesPerView: 1.6, spaceBetween: 15, breakpoints: { 768: { slidesPerView: 4 } } });
             }
         });
     </script>
-    <script src="script.js"></script>
 </body>
 </html>
