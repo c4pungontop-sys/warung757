@@ -31,101 +31,105 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        h1, h2, h3, h4, .step-num, .method-price, .btn-order, #footerPrice, .total-info h2 {
+        h1, h2, h3, h4, .step-num, .method-price, .btn-order, #footerPrice {
             font-family: var(--font-title);
         }
 
-        /* Animations */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            50% { transform: translateX(8px); }
-            75% { transform: translateX(-8px); }
-        }
-        .shake-error {
-            animation: shake 0.4s ease-in-out;
-            border-color: var(--error-red) !important;
-            box-shadow: 0 0 15px rgba(255, 77, 77, 0.4) !important;
-        }
-
+        /* Loading Spinner */
         #loader {
             position: fixed; width: 100%; height: 100%; background: var(--dark-blue);
-            display: flex; justify-content: center; align-items: center; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
         }
         .coda-spinner {
             width: 50px; height: 50px; border: 4px solid rgba(212, 175, 55, 0.1);
             border-top: 4px solid var(--gold); border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite; margin-bottom: 15px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(212,175,55,0.1); }
-        .header h2 { font-size: 1.1rem; font-weight: 800; color: var(--gold); letter-spacing: 1px; }
+        /* Header */
+        .header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(212,175,55,0.1); sticky: top; z-index: 100; }
+        .header h2 { font-size: 1rem; font-weight: 800; color: var(--gold); letter-spacing: 1px; }
 
-        .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .container { max-width: 1000px; margin: 20px auto; padding: 0 15px; display: grid; grid-template-columns: 1fr; gap: 20px; }
 
         @media (min-width: 992px) {
-            .container { grid-template-columns: 400px 1fr; }
+            .container { grid-template-columns: 350px 1fr; }
             .left-side { position: sticky; top: 20px; align-self: start; }
         }
 
-        .section-card { background: var(--card-bg); border-radius: 12px; padding: 25px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 20px; }
+        .section-card { background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 
         .product-preview-box { text-align: center; }
         .product-preview-box img { 
-            width: 100%; max-width: 250px; border-radius: 15px; 
+            width: 100%; max-width: 250px; border-radius: 12px; 
             border: 2px solid var(--gold); margin-bottom: 15px; cursor: zoom-in;
-            object-fit: cover; aspect-ratio: 1/1;
+            aspect-ratio: 1/1; object-fit: cover;
         }
 
-        .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-        .step-num { width: 32px; height: 32px; background: var(--gold); color: var(--dark-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; }
-        .step-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+        .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .step-num { width: 28px; height: 28px; background: var(--gold); color: var(--dark-blue); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; flex-shrink: 0; }
+        .step-header h3 { font-size: 1rem; font-weight: 700; color: var(--white); }
 
-        .input-box, .select-box { width: 100%; padding: 14px; background: #0a0e27; border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 10px; color: white; margin-bottom: 12px; outline: none; transition: 0.3s; font-family: var(--font-body); font-size: 0.9rem; }
-        .input-box:focus { border-color: var(--gold); }
+        .input-box, .select-box { width: 100%; padding: 12px; background: #0a0e27; border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 8px; color: white; margin-bottom: 10px; outline: none; transition: 0.3s; font-size: 0.85rem; }
+        .input-box:focus { border-color: var(--gold); background: #111842; }
 
         .payment-list { display: flex; flex-direction: column; gap: 10px; }
         .method-item { 
             display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 18px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; transition: 0.2s;
+            padding: 12px 15px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; transition: 0.2s;
         }
-        .method-item.active { border-color: var(--gold); background: rgba(212, 175, 55, 0.08); }
-        .method-item img { height: 18px; }
+        .method-item.active { border-color: var(--gold); background: rgba(212, 175, 55, 0.1); }
+        .method-item img { height: 16px; max-width: 80px; }
+        .method-price { font-size: 0.75rem; font-weight: 600; color: var(--gold-light); }
 
+        /* Floating Footer */
         .footer-action {
-            position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0e27;
-            padding: 18px 5%; border-top: 1px solid rgba(212,175,55,0.2);
+            position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10, 14, 39, 0.95);
+            padding: 15px 5%; border-top: 1px solid rgba(212,175,55,0.3);
             display: flex; justify-content: space-between; align-items: center; z-index: 1000;
             backdrop-filter: blur(10px);
         }
-        .total-info h2 { font-size: 1.4rem; color: var(--gold); font-weight: 700; }
-        .btn-order { background: var(--gold); color: var(--dark-blue); padding: 12px 28px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; }
+        .total-info p { font-size: 0.65rem; opacity: 0.7; letter-spacing: 1px; }
+        .total-info h2 { font-size: 1.2rem; color: var(--gold); font-weight: 800; }
+        .btn-order { background: var(--gold); color: var(--dark-blue); padding: 12px 25px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3); }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 16px; padding: 25px; border: 1px solid rgba(212, 175, 55, 0.3); text-align: center; }
-        .upload-zone { margin: 18px 0; padding: 20px; border: 2px dashed rgba(212, 175, 55, 0.3); border-radius: 12px; cursor: pointer; background: rgba(0,0,0,0.2); }
+        /* Modal Payment */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 25px; border: 1px solid var(--gold); text-align: center; position: relative; }
+        .upload-zone { margin: 15px 0; padding: 15px; border: 2px dashed rgba(212, 175, 55, 0.4); border-radius: 12px; cursor: pointer; background: rgba(0,0,0,0.2); transition: 0.3s; }
+        .upload-zone:hover { background: rgba(212, 175, 55, 0.05); }
+
+        .input-label { font-size: 0.75rem; color: var(--gold-light); margin-bottom: 6px; display: block; font-weight: 600; text-align: left; }
         
-        .input-label { font-size: 0.8rem; color: var(--gold-light); margin-bottom: 5px; display: block; font-weight: 600; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake-error { animation: shake 0.3s ease-in-out; border-color: var(--error-red) !important; }
     </style>
 </head>
 <body>
 
-    <div id="loader"><div class="coda-spinner"></div></div>
+    <div id="loader">
+        <div class="coda-spinner"></div>
+        <p style="font-size: 0.8rem; color: var(--gold);">Menyiapkan Pesanan...</p>
+    </div>
 
     <div class="header">
-        <a href="index.html" style="color: var(--gold); font-size: 1.1rem;"><i class="fas fa-chevron-left"></i></a>
-        <h2>CHECKOUT AKUN</h2>
+        <a href="index.html" style="color: var(--gold); font-size: 1.2rem;"><i class="fas fa-chevron-left"></i></a>
+        <h2>KONFIRMASI PEMBELIAN</h2>
     </div>
 
     <div class="container">
         <div class="left-side">
             <div class="section-card product-preview-box">
-                <img id="p-img" src="https://via.placeholder.com/300?text=Memuat..." alt="Akun" loading="lazy" crossorigin="anonymous" onclick="zoomImage()" onerror="this.src='https://via.placeholder.com/300?text=Gambar+Rusak'">
-                <h2 id="p-title" style="font-size: 1.2rem; color: var(--gold-light);">Memuat Nama...</h2>
-                <p id="p-price-display" style="font-size: 1.4rem; font-weight: 800; margin-top: 5px;">Rp 0</p>
+                <img id="p-img" src="https://via.placeholder.com/300?text=Memuat..." alt="Akun" onclick="zoomImage()">
+                <h2 id="p-title" style="font-size: 1.1rem; color: var(--gold-light); line-height: 1.3;">Memuat Nama Produk...</h2>
+                <p id="p-price-display" style="font-size: 1.3rem; font-weight: 800; margin-top: 8px; color: #fff;">Rp 0</p>
                 <hr style="opacity: 0.1; margin: 15px 0;">
-                <a href="#" id="wa-tanya" target="_blank" style="color: #25d366; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                <a href="#" id="wa-tanya" target="_blank" style="color: #25d366; text-decoration: none; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     <i class="fab fa-whatsapp"></i> Tanya Detail Akun
                 </a>
             </div>
@@ -135,39 +139,39 @@
             <div class="section-card" id="card-step-1">
                 <div class="step-header">
                     <div class="step-num">1</div>
-                    <h3>Informasi Pesanan</h3>
+                    <h3>Lengkapi Data</h3>
                 </div>
                 
-                <label class="input-label">Jumlah Stok</label>
+                <label class="input-label">Jumlah</label>
                 <input type="number" id="buy-qty" class="input-box" value="1" min="1" oninput="updateTotalDisplay()">
                 
-                <label class="input-label">Metode Pengiriman</label>
+                <label class="input-label">Kirim Hasil Ke</label>
                 <select id="delivery-method" class="select-box">
                     <option value="WhatsApp">Kirim via WhatsApp</option>
                     <option value="Email">Kirim via Email</option>
                 </select>
                 
-                <label class="input-label">Kontak Penerima</label>
-                <input type="text" id="contact-info" class="input-box" placeholder="No. WA atau Email Penerima">
+                <label class="input-label">Nomor WA / Email Anda</label>
+                <input type="text" id="contact-info" class="input-box" placeholder="Contoh: 081234567xxx">
             </div>
 
             <div class="section-card" id="card-step-2">
                 <div class="step-header">
                     <div class="step-num">2</div>
-                    <h3>Pilih Pembayaran</h3>
+                    <h3>Metode Pembayaran</h3>
                 </div>
                 <div class="payment-list">
                     <div class="method-item" onclick="selectMetode(this, 'QRIS ALL PAYMENT')">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" loading="lazy">
-                        <span class="method-price">Pilih</span>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg" alt="QRIS">
+                        <span class="method-price">Otomatis</span>
                     </div>
                     <div class="method-item" onclick="selectMetode(this, 'BCA')">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" loading="lazy">
-                        <span class="method-price">Pilih</span>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" alt="BCA">
+                        <span class="method-price">Manual</span>
                     </div>
                     <div class="method-item" onclick="selectMetode(this, 'QRIS DANA ONLY')">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Logo_dana_blue.svg" loading="lazy">
-                        <span class="method-price">Pilih</span>
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Logo_dana_blue.svg" alt="DANA">
+                        <span class="method-price">Otomatis</span>
                     </div>
                 </div>
             </div>
@@ -176,38 +180,39 @@
 
     <div class="footer-action">
         <div class="total-info">
-            <p style="font-size: 0.7rem; opacity: 0.6;">TOTAL PEMBAYARAN</p>
+            <p>TOTAL TAGIHAN</p>
             <h2 id="footerPrice">Rp 0</h2>
         </div>
-        <button class="btn-order" onclick="openPayment()">Beli Sekarang</button>
+        <button class="btn-order" onclick="openPayment()">Bayar Sekarang</button>
     </div>
 
     <div class="modal-overlay" id="modalPayment">
         <div class="modal-content">
-            <h2 style="font-size: 1.1rem; color: var(--gold);">Detail Pembayaran</h2>
-            <p id="textTotal" style="font-size: 1.5rem; font-weight: 800; margin: 12px 0;"></p>
+            <h2 style="font-size: 1rem; color: var(--gold); text-transform: uppercase; letter-spacing: 1px;">Selesaikan Pembayaran</h2>
+            <p id="textTotal" style="font-size: 1.6rem; font-weight: 800; margin: 10px 0; color: #fff;"></p>
 
-            <div id="qrArea" style="display:none; margin: 12px 0;">
-                <div style="background: white; padding: 10px; border-radius: 12px; display: inline-block; border: 2px solid var(--gold);">
-                    <img id="qrImg" src="" style="width: 180px;" crossorigin="anonymous">
+            <div id="qrArea" style="display:none; margin: 15px 0;">
+                <div style="background: white; padding: 12px; border-radius: 12px; display: inline-block; border: 3px solid var(--gold);">
+                    <img id="qrImg" src="" style="width: 200px; display: block;">
                 </div>
+                <p style="font-size: 0.7rem; color: var(--gold-light); margin-top: 10px;">Screenshot QRIS & Scan di Aplikasi Bank/E-wallet Anda</p>
             </div>
 
-            <div id="bankArea" style="display:none; padding: 20px 0;">
-                <p style="font-size: 0.8rem; opacity: 0.7;">Transfer Manual BCA:</p>
-                <h2 style="letter-spacing: 1px; color: var(--gold-light);">4600518033</h2>
-                <p style="font-size: 0.85rem;">A/N RIAN APANDI</p>
+            <div id="bankArea" style="display:none; padding: 15px 0; background: rgba(255,255,255,0.05); border-radius: 12px; margin: 15px 0;">
+                <p style="font-size: 0.75rem; opacity: 0.7;">Transfer Manual Ke:</p>
+                <h2 style="letter-spacing: 2px; color: var(--gold-light); margin: 5px 0; font-size: 1.4rem;">4600518033</h2>
+                <p style="font-size: 0.8rem; font-weight: 700;">BANK BCA - RIAN APANDI</p>
             </div>
 
             <div class="upload-zone" id="up-zone" onclick="document.getElementById('file-bukti').click()">
-                <i class="fas fa-cloud-upload-alt" style="font-size: 1.8rem; color: var(--gold); margin-bottom: 8px;"></i><br>
-                <span id="up-text" style="font-size: 0.8rem; color: var(--gold-light);">Upload Bukti Bayar</span>
+                <i class="fas fa-camera" style="font-size: 1.5rem; color: var(--gold); margin-bottom: 5px;"></i><br>
+                <span id="up-text" style="font-size: 0.75rem; color: #fff;">Klik untuk Upload Bukti Bayar</span>
                 <input type="file" id="file-bukti" hidden accept="image/*" onchange="showFile(this)">
             </div>
 
-            <div style="display: flex; gap: 10px;">
-                <button onclick="closeModal()" style="flex:1; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:white;">Batal</button>
-                <button id="btn-final" onclick="processOrder()" style="flex:2; padding:12px; border-radius:10px; background:var(--gold); border:none; font-weight: 700; color:var(--dark-blue);">Konfirmasi</button>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="closeModal()" style="flex:1; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.2); background:transparent; color:white; font-size: 0.8rem;">Batal</button>
+                <button id="btn-final" onclick="processOrder()" style="flex:2; padding:12px; border-radius:10px; background:var(--gold); border:none; font-weight: 800; color:var(--dark-blue); font-size: 0.85rem;">Konfirmasi Sudah Bayar</button>
             </div>
         </div>
     </div>
@@ -225,18 +230,15 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // Ambil ID dari URL
         const urlParams = new URLSearchParams(window.location.search);
         const accountId = urlParams.get('id');
         let currentAccount = null;
         window.chosenMethod = null;
 
-        if (!accountId) {
-            window.location.href = 'index.html';
-        }
-
-        // FUNGSI MEMBERSIHKAN URL (PENCEGAH FOTO HILANG)
+        // FUNGSI BERSIHKAN URL
         function cleanUrl(u) {
-            if (!u || u === 'undefined' || u === '') return 'https://via.placeholder.com/300?text=No+Image';
+            if (!u || u === 'undefined') return 'https://via.placeholder.com/300?text=No+Image';
             let url = u.trim();
             if (url.startsWith('http://')) url = url.replace('http://', 'https://');
             if (url.includes('<img')) {
@@ -246,38 +248,47 @@
             return url;
         }
 
-        // Load Data Akun
-        get(ref(db, `site_content/account_stocks/${accountId}`)).then((snapshot) => {
-            if (snapshot.exists()) {
-                currentAccount = snapshot.val();
-                document.getElementById('p-title').innerText = currentAccount.title;
-                
-                updateTotalDisplay();
-                
-                // Image handling aman
-                const finalImg = cleanUrl(currentAccount.image);
-                document.getElementById('p-img').src = finalImg;
-                
-                const msg = encodeURIComponent(`Halo Admin, saya ingin bertanya tentang akun: *${currentAccount.title}*`);
-                document.getElementById('wa-tanya').href = `https://wa.me/6283819531840?text=${msg}`;
-                
-                document.getElementById('loader').style.display = 'none';
-            } else {
+        // LOAD DATA UTAMA (FIXED: Tidak langsung mental)
+        if (!accountId) {
+            Swal.fire('Error', 'ID Akun tidak ditemukan!', 'error').then(() => {
                 window.location.href = 'index.html';
-            }
-        }).catch(err => {
-            console.error("Firebase Error:", err);
-            window.location.href = 'index.html';
-        });
+            });
+        } else {
+            const accountRef = ref(db, `site_content/account_stocks/${accountId}`);
+            get(accountRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    currentAccount = snapshot.val();
+                    
+                    document.getElementById('p-title').innerText = currentAccount.title;
+                    document.getElementById('p-price-display').innerText = "Rp " + currentAccount.price.toLocaleString('id-ID');
+                    document.getElementById('footerPrice').innerText = "Rp " + currentAccount.price.toLocaleString('id-ID');
+                    
+                    const finalImg = cleanUrl(currentAccount.image);
+                    document.getElementById('p-img').src = finalImg;
+                    
+                    const msg = encodeURIComponent(`Halo Admin, saya ingin bertanya tentang akun: *${currentAccount.title}*`);
+                    document.getElementById('wa-tanya').href = `https://wa.me/6283819531840?text=${msg}`;
+                    
+                    document.getElementById('loader').style.display = 'none';
+                } else {
+                    Swal.fire('Error', 'Data akun sudah tidak tersedia.', 'error').then(() => {
+                        window.location.href = 'index.html';
+                    });
+                }
+            }).catch(err => {
+                console.error("Firebase Error:", err);
+                window.location.href = 'index.html';
+            });
+        }
 
+        // UPDATE HARGA BERDASARKAN QTY
         window.updateTotalDisplay = () => {
             if(!currentAccount) return;
-            const qty = parseInt(document.getElementById('buy-qty').value) || 1;
-            const finalPrice = currentAccount.price * qty;
-            const formatted = "Rp " + finalPrice.toLocaleString('id-ID');
+            let qty = parseInt(document.getElementById('buy-qty').value) || 1;
+            if(qty < 1) qty = 1;
             
-            document.getElementById('p-price-display').innerText = "Rp " + currentAccount.price.toLocaleString('id-ID');
-            document.getElementById('footerPrice').innerText = formatted;
+            const total = currentAccount.price * qty;
+            document.getElementById('footerPrice').innerText = "Rp " + total.toLocaleString('id-ID');
         };
 
         window.selectMetode = (el, m) => {
@@ -287,8 +298,14 @@
         };
 
         window.openPayment = () => {
-            if(!document.getElementById('contact-info').value) return triggerShake('card-step-1');
-            if(!window.chosenMethod) return triggerShake('card-step-2');
+            if(!document.getElementById('contact-info').value) {
+                triggerShake('contact-info');
+                return Swal.fire('Info', 'Harap isi kontak Anda!', 'warning');
+            }
+            if(!window.chosenMethod) {
+                triggerShake('card-step-2');
+                return Swal.fire('Info', 'Pilih metode pembayaran!', 'warning');
+            }
 
             document.getElementById('textTotal').innerText = document.getElementById('footerPrice').innerText;
             document.getElementById('modalPayment').style.display = 'flex';
@@ -303,7 +320,6 @@
             } else {
                 bankArea.style.display = 'none';
                 qrArea.style.display = 'block';
-                // Link QRIS dipastikan HTTPS
                 qrImg.src = (window.chosenMethod === "QRIS DANA ONLY") ? "https://i.ibb.co/mCNgdP20/20260225-045526.png" : "https://i.ibb.co/6RcGf5ZC/1772040416685.png";
             }
         };
@@ -315,14 +331,18 @@
             const qty = parseInt(document.getElementById('buy-qty').value) || 1;
             const finalPrice = currentAccount.price * qty;
 
-            if(!file) return triggerShake('up-zone');
+            if(!file) {
+                triggerShake('up-zone');
+                return Swal.fire('Wajib', 'Upload bukti transfer terlebih dahulu!', 'info');
+            }
 
-            Swal.fire({ title: 'Mengirim...', allowOutsideClick: false, background: '#0a0e27', color: '#fff', didOpen: () => Swal.showLoading() });
+            Swal.fire({ title: 'Mengirim...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
             const trxId = "ACC-" + Math.floor(100000 + Math.random() * 900000);
             const dateStr = new Date().toLocaleString('id-ID');
 
             try {
+                // Simpan ke Database
                 await set(ref(db, 'transactions/' + trxId), {
                     id: trxId,
                     contact: contact,
@@ -335,23 +355,21 @@
                     date: dateStr
                 });
 
-                let history = JSON.parse(localStorage.getItem('trx_history')) || [];
-                history.unshift({ id: trxId, product: `${currentAccount.title} (x${qty})`, date: dateStr, status: "DIPROSES", price: finalPrice });
-                localStorage.setItem('trx_history', JSON.stringify(history));
-
+                // Kirim Notifikasi ke Admin (Discord Webhook)
                 const formData = new FormData();
                 formData.append('payload_json', JSON.stringify({
                     embeds: [{
                         title: "🛒 PESANAN AKUN BARU: " + trxId,
-                        color: 16753920,
+                        color: 15844367, // Gold Color
                         fields: [
                             { name: "Produk", value: currentAccount.title, inline: true },
                             { name: "Jumlah", value: qty + " Unit", inline: true },
-                            { name: "Total Harga", value: "Rp " + finalPrice.toLocaleString('id-ID'), inline: true },
-                            { name: "Kontak", value: contact, inline: false },
+                            { name: "Total", value: "Rp " + finalPrice.toLocaleString('id-ID'), inline: true },
+                            { name: "Penerima", value: contact, inline: false },
                             { name: "Metode", value: window.chosenMethod, inline: true },
-                            { name: "Pengiriman", value: delivery, inline: true }
-                        ]
+                            { name: "Via", value: delivery, inline: true }
+                        ],
+                        footer: { text: "Warung 757 - Order System" }
                     }]
                 }));
                 formData.append('file', file);
@@ -361,15 +379,11 @@
                     body: formData 
                 });
 
-                Swal.fire({
-                    title: 'Berhasil!',
-                    text: 'Pesanan sedang diproses admin.',
-                    icon: 'success',
-                    confirmButtonColor: '#d4af37'
-                }).then(() => window.location.href = "index.html");
+                Swal.fire('Berhasil!', 'Pesanan Anda telah diterima admin. Silakan tunggu di WhatsApp/Email.', 'success')
+                .then(() => window.location.href = "index.html");
 
             } catch (e) {
-                Swal.fire('Gagal', e.message, 'error');
+                Swal.fire('Gagal', 'Terjadi kesalahan sistem, silakan hubungi admin.', 'error');
             }
         };
 
@@ -392,13 +406,12 @@
 
         window.showFile = (input) => {
             if(input.files[0]) {
-                document.getElementById('up-text').innerText = "✓ " + input.files[0].name;
+                document.getElementById('up-text').innerText = "✅ " + input.files[0].name;
                 document.getElementById('up-zone').style.borderColor = "#25d366";
             }
         };
 
         window.closeModal = () => { document.getElementById('modalPayment').style.display = 'none'; };
-</script>
-    <script src="script.js"></script>
+    </script>
 </body>
 </html>
