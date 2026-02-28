@@ -72,10 +72,11 @@
             color: rgba(255,255,255,0.7);
             margin-top: 10px;
             line-height: 1.5;
-            white-space: pre-line; /* Agar enter di admin terbaca */
+            white-space: pre-line;
             background: rgba(0,0,0,0.2);
             padding: 10px;
             border-radius: 8px;
+            border-left: 3px solid var(--gold);
         }
 
         .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
@@ -91,7 +92,7 @@
             padding: 15px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; transition: 0.2s;
         }
         .method-item.active { border-color: var(--gold); background: rgba(212, 175, 55, 0.1); box-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
-        .method-item img { height: 25px; max-width: 120px; filter: brightness(1.1); }
+        .method-item img { height: 25px; max-width: 120px; filter: brightness(1.1); pointer-events: none; }
 
         /* Floating Footer */
         .footer-action {
@@ -114,10 +115,10 @@
         
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
         }
-        .shake-error { animation: shake 0.3s ease-in-out; border-color: var(--error-red) !important; }
+        .shake-error { animation: shake 0.2s ease-in-out 0s 2; border-color: var(--error-red) !important; box-shadow: 0 0 10px rgba(255, 77, 77, 0.3); }
     </style>
 </head>
 <body>
@@ -303,13 +304,27 @@
         };
 
         window.openPayment = () => {
-            if(!document.getElementById('contact-info').value) {
+            const contactInput = document.getElementById('contact-info');
+            
+            // Perbaikan Logika Shake untuk kontak kosong
+            if(!contactInput.value.trim()) {
                 triggerShake('contact-info');
-                return Swal.fire('Info', 'Harap isi kontak Anda!', 'warning');
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'Data Belum Lengkap',
+                    text: 'Harap isi Nomor WA / Email Anda!',
+                    confirmButtonColor: '#d4af37'
+                });
             }
+            
             if(!window.chosenMethod) {
                 triggerShake('card-step-2');
-                return Swal.fire('Info', 'Pilih metode pembayaran!', 'warning');
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'Pilih Pembayaran',
+                    text: 'Silakan pilih salah satu metode pembayaran!',
+                    confirmButtonColor: '#d4af37'
+                });
             }
 
             document.getElementById('textTotal').innerText = document.getElementById('footerPrice').innerText;
@@ -325,7 +340,7 @@
             } else {
                 bankArea.style.display = 'none';
                 qrArea.style.display = 'block';
-                // Link gambar diperbarui agar stabil
+                // Gunakan direktori gambar yang valid
                 qrImg.src = (window.chosenMethod === "QRIS DANA ONLY") ? "https://i.ibb.co/mCNgdP20/20260225-045526.png" : "https://i.ibb.co/6RcGf5ZC/1772040416685.png";
             }
         };
@@ -391,13 +406,15 @@
             }
         };
 
-        function triggerShake(id) {
+        // Fungsi Shake diperkuat
+        window.triggerShake = (id) => {
             const el = document.getElementById(id);
             if(el) {
                 el.classList.add('shake-error');
-                setTimeout(() => el.classList.remove('shake-error'), 400);
+                el.focus();
+                setTimeout(() => el.classList.remove('shake-error'), 500);
             }
-        }
+        };
 
         window.zoomImage = () => {
             Swal.fire({
