@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Owner Dashboard | Warung 757</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --dark-blue: #0a0e27;
+            --royal-blue: #16215b;
+            --gold: #d4af37;
+            --gold-light: #f1d592;
+            --white: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border-gold: rgba(212, 175, 55, 0.3);
+            --success: #2ecc71;
+            --danger: #ff4d4d;
+        }
+
+        body {
+            background: var(--dark-blue);
+            background-image: radial-gradient(circle at top right, #16215b 0%, #0a0e27 100%);
+            font-family: 'Poppins', sans-serif; color: var(--white); min-height: 100vh; 
+            padding: 15px; overflow-x: hidden;
+        }
+
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark-blue); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-box { background: var(--card-bg); padding: 40px 30px; border-radius: 30px; border: 1px solid var(--border-gold); width: 100%; max-width: 380px; text-align: center; backdrop-filter: blur(15px); }
+        .key-input { width: 100%; padding: 15px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-gold); color: var(--gold-light); border-radius: 15px; margin: 25px 0; text-align: center; font-size: 1.2rem; letter-spacing: 8px; outline: none; }
+
+        #admin-content { display: none; }
+        .admin-container { max-width: 500px; margin: 0 auto; animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 18px; border: 1px solid var(--border-gold); }
+
+        .category-group { margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 20px; border: 1px solid rgba(212,175,55,0.1); }
+        .category-title { font-size: 0.75rem; color: var(--gold); margin-bottom: 15px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px; }
+
+        .product-card { background: rgba(0,0,0,0.25); border: 1px solid var(--border-gold); padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; overflow: hidden; }
+        .product-info { font-size: 0.8rem; font-weight: 600; flex-grow: 1; }
+        .input-box { background: rgba(0,0,0,0.4); border: 1px solid var(--border-gold); color: white; padding: 8px 10px; border-radius: 8px; font-size: 0.75rem; outline: none; width: 100%; }
+
+        .btn-action { background: var(--gold); color: var(--dark-blue); border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.7rem; transition: 0.2s; white-space: nowrap; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-flash { background: #ff4d4d; color: white; }
+        .btn-done { background: var(--success); color: white; flex: 1; padding: 8px; border-radius: 8px; font-weight: 800; border: none; cursor: pointer; font-size: 0.7rem; }
+        .btn-cancel { background: var(--danger); color: white; flex: 1; padding: 8px; border-radius: 8px; font-weight: 800; border: none; cursor: pointer; font-size: 0.7rem; }
+
+        .status-msg { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--gold); color: var(--dark-blue); padding: 10px 20px; border-radius: 50px; font-weight: 800; display: none; z-index: 1000; font-size: 0.8rem; }
+        .swal-input-label { display: block; text-align: left; margin-top: 10px; font-size: 0.75rem; color: var(--gold-light); }
+
+        .banner-manage-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .banner-preview-item { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; border: 1px solid var(--border-gold); }
+        .banner-preview-item img { width: 60px; height: 35px; object-fit: cover; border-radius: 4px; }
+
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(20px); }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <i class="fas fa-crown" style="font-size: 2rem; color: var(--gold); margin-bottom: 10px;"></i>
+            <h2 style="color: var(--gold); font-size: 1.2rem;">OWNER ACCESS</h2>
+            <input type="password" id="admin-key-input" class="key-input" placeholder="••••••">
+            <button class="btn-action" style="width:100%; padding: 15px;" onclick="checkKey()">LOGIN SYSTEM</button>
+        </div>
+    </div>
+
+    <div id="admin-content">
+        <div class="admin-container">
+            <div class="header">
+                <div>
+                    <h2 style="color: var(--gold); font-size: 1rem;"><i class="fas fa-tools"></i> 757 PANEL</h2>
+                    <p style="font-size: 0.55rem; opacity: 0.6;">DASHBOARD PENGELOLAAN WARUNG</p>
+                </div>
+            </div>
+
+            <div class="category-group">
+                <div class="category-title"><i class="fas fa-id-card"></i> Nama Brand & Logo Utama</div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <input type="text" id="site-name-input" class="input-box" placeholder="Nama Brand (WARUNG 757)">
+                    <input type="text" id="logo-url-input" class="input-box" placeholder="URL Logo Utama (.png/.jpg)">
+                    <button class="btn-action" onclick="updateSiteIdentity()">Simpan Identitas</button>
+                </div>
+            </div>
+
+            <div class="category-group">
+                <div class="category-title"><i class="fas fa-shopping-cart"></i> Pesanan Masuk (DIPROSES)</div>
+                <div id="order-list"></div>
+            </div>
+
+            <div class="category-group">
+                <div class="category-title"><i class="fas fa-th-large"></i> Kelola Kategori Pilihan (Grid)</div>
+                <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px;">
+                    <input type="text" id="cat-new-name" class="input-box" style="margin-bottom:5px;" placeholder="Nama Game (Mobile Legends)">
+                    <input type="text" id="cat-new-img" class="input-box" style="margin-bottom:5px;" placeholder="URL Gambar Ikon">
+                    <input type="text" id="cat-new-link" class="input-box" style="margin-bottom:5px;" placeholder="Link Tujuan (topup-ml.html)">
+                    <select id="cat-new-type" class="input-box" style="margin-bottom:8px; background: #16215b; color: white;">
+                        <option value="topup">Top Up</option>
+                        <option value="item">Item Game</option>
+                        <option value="sosmed">Sosmed</option>
+                        <option value="lainnya">Lainnya</option>
+                    </select>
+                    <button class="btn-action" style="width:100%" onclick="addNewCategory()"><i class="fas fa-plus"></i> Tambah ke Grid</button>
+                </div>
+                <div id="admin-category-list"></div>
+            </div>
+
+            <div class="category-group">
+                <div class="category-title"><i class="fas fa-box-open"></i> Kelola Koleksi Akun</div>
+                <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px;">
+                    <input type="text" id="stock-new-title" class="input-box" style="margin-bottom:5px;" placeholder="Judul Akun (MLBB Mythic)">
+                    <input type="number" id="stock-new-price" class="input-box" style="margin-bottom:5px;" placeholder="Harga">
+                    <input type="number" id="stock-new-qty" class="input-box" style="margin-bottom:5px;" placeholder="Jumlah Stok">
+                    <input type="text" id="stock-new-img" class="input-box" style="margin-bottom:5px;" placeholder="URL Gambar Akun">
+                    <textarea id="stock-new-desc" class="input-box" style="margin-bottom:8px; height: 60px; resize: none;" placeholder="Deskripsi Akun (Contoh: Full Skin, Rank Mythic, Hero Lengkap)"></textarea>
+                    <button class="btn-action" style="width:100%" onclick="addNewStock()"><i class="fas fa-plus"></i> Tambah Stok Akun</button>
+                </div>
+                <div id="admin-stock-list"></div>
+            </div>
+
+            <div class="category-group">
+                <div class="category-title"><i class="fas fa-robot"></i> Atur Harga Roblox</div>
+                <div id="roblox-list-admin"></div>
+                <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid var(--border-gold); margin-top: 15px;">
+                    <p style="font-size: 0.6rem; color: var(--gold); margin-bottom: 5px;">Tambah Paket Custom:</p>
+                    <input type="text" id="rbx-new-id" class="input-box" style="margin-bottom:5px;" placeholder="ID (rbx_5000)">
+                    <input type="text" id="rbx-new-name" class="input-box" style="margin-bottom:5px;" placeholder="Nama (5.000 Robux)">
+                    <input type="number" id="rbx-new-price" class="input-box" style="margin-bottom:8px;" placeholder="Harga (500000)">
+                    <button class="btn-action" style="width:100%" onclick="addOrUpdateProduct('ROBLOX')"><i class="fas fa-plus"></i> Tambah Roblox</button>
+                </div>
+            </div>
+
+            <div class="category-group">
+                <div class="category-title"><i class="fas fa-gem"></i> Atur Harga Zepeto</div>
+                <div id="zepeto-list-admin"></div>
+                <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid var(--border-gold); margin-top: 15px;">
+                    <p style="font-size: 0.6rem; color: var(--gold); margin-bottom: 5px;">Tambah Paket Custom:</p>
+                    <input type="text" id="zep-new-id" class="input-box" style="margin-bottom:5px;" placeholder="ID (zep_99)">
+                    <input type="text" id="zep-new-name" class="input-box" style="margin-bottom:5px;" placeholder="Nama (99 Zems)">
+                    <input type="number" id="zep-new-price" class="input-box" style="margin-bottom:8px;" placeholder="Harga (15000)">
+                    <button class="btn-action" style="width:100%" onclick="addOrUpdateProduct('ZEPETO')"><i class="fas fa-plus"></i> Tambah Zepeto</button>
+                </div>
+            </div>
+
+            <div class="category-group">
+                <div class="category-title"><i class="fab fa-discord"></i> Atur Harga Discord</div>
+                <div id="discord-list-admin"></div>
+                <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; border: 1px solid var(--border-gold); margin-top: 15px;">
+                    <p style="font-size: 0.6rem; color: var(--gold); margin-bottom: 5px;">Tambah Paket Discord:</p>
+                    <input type="text" id="dsc-new-id" class="input-box" style="margin-bottom:5px;" placeholder="ID (dsc_nitro)">
+                    <input type="text" id="dsc-new-name" class="input-box" style="margin-bottom:5px;" placeholder="Nama (Discord Nitro 1 Bulan)">
+                    <input type="number" id="dsc-new-price" class="input-box" style="margin-bottom:8px;" placeholder="Harga (50000)">
+                    <button class="btn-action" style="width:100%" onclick="addOrUpdateProduct('DISCORD')"><i class="fas fa-plus"></i> Tambah Discord</button>
+                </div>
+            </div>
+
+            <div class="category-group">
+                <div class="category-title"><i class="fas fa-bullhorn"></i> List Pengumuman Running Text</div>
+                <div style="margin-bottom: 10px;">
+                    <textarea id="announcement-input" class="input-box" style="width:100%; margin-bottom:8px; height: 60px; resize: none;" placeholder="Tulis pengumuman baru..."></textarea>
+                    <button class="btn-action" style="width:100%" onclick="addAnnouncement()"><i class="fas fa-plus"></i> Tambah Pengumuman</button>
+                </div>
+                <div id="admin-announcement-list"></div>
+            </div>
+
+            <div class="category-group">
+                <div class="category-title"><i class="fas fa-image"></i> Banner Popup</div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div>
+                        <p style="font-size: 0.6rem; color: var(--gold); margin-bottom: 3px;">URL Banner Popup (Promosi):</p>
+                        <input type="text" id="popup-url-input" class="input-box" placeholder="https://link-gambar-popup.png">
+                    </div>
+                    <button class="btn-action" onclick="updateSiteVisuals()">Simpan Popup Site</button>
+                </div>
+            </div>
+
+            <div class="category-group">
+                <div class="category-title"><i class="fas fa-sliders-h"></i> Banner Slider Atas</div>
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="new-banner-url" class="input-box" style="margin-bottom:8px;" placeholder="Masukkan URL Gambar Banner...">
+                    <button class="btn-action" style="width:100%" onclick="addSliderBanner()"><i class="fas fa-plus"></i> Tambah Slider</button>
+                </div>
+                <div id="admin-banner-slider-list" class="banner-manage-list"></div>
+            </div>
+
+            <div class="category-group">
+                <div class="category-title"><i class="fas fa-fire"></i> Kelola Flash Sale</div>
+                <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 15px;">
+                    <p style="font-size: 0.6rem; color: var(--gold); margin-bottom: 5px;">Input Flash Sale Manual:</p>
+                    <input type="text" id="manual-promo-name" class="input-box" style="margin-bottom:5px;" placeholder="Nama Produk (MLBB 1000 DM)">
+                    <input type="number" id="manual-promo-price" class="input-box" style="margin-bottom:5px;" placeholder="Harga Promo">
+                    <input type="number" id="manual-promo-old" class="input-box" style="margin-bottom:5px;" placeholder="Harga Coret (Lama)">
+                    <button class="btn-action" style="width:100%" onclick="addPromoManual()">Aktifkan Flash Sale</button>
+                </div>
+                <div id="promo-admin-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="status-pop" class="status-msg">Berhasil!</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDU-cVQatcbyA-RSM-zftZf1NH5q9fcFI",
+            authDomain: "warung-757.firebaseapp.com",
+            projectId: "warung-757",
+            databaseURL: "https://warung-757-default-rtdb.firebaseio.com"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const MY_SECRET_KEY = "031004"; 
+
+        window.checkKey = function() {
+            const input = document.getElementById('admin-key-input').value;
+            if(input === MY_SECRET_KEY) {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('admin-content').style.display = 'block';
+                initDashboard();
+            } else { 
+                Swal.fire({ icon: 'error', title: 'Akses Ditolak', background: '#0a0e27', color: '#fff' });
+            }
+        }
+
+        function initDashboard() {
+            get(ref(db, 'site_content')).then(snap => {
+                if(snap.exists()){
+                    const d = snap.val();
+                    document.getElementById('site-name-input').value = d.brand_name || "";
+                    document.getElementById('logo-url-input').value = d.logo_url || "";
+                    document.getElementById('popup-url-input').value = d.popup_banner || "";
+                }
+            });
+
+            onValue(ref(db, 'site_content/announcements'), (snap) => {
+                const list = document.getElementById('admin-announcement-list');
+                const data = snap.val(); list.innerHTML = "";
+                if(data) {
+                    const announcements = Array.isArray(data) ? data : [data];
+                    announcements.forEach((text, i) => {
+                        list.innerHTML += `
+                        <div class="product-card">
+                            <div class="product-info" style="font-size:0.7rem;">${text}</div>
+                            <button class="btn-action btn-danger" onclick="deleteAnnouncement(${i})"><i class="fas fa-trash"></i></button>
+                        </div>`;
+                    });
+                }
+            });
+
+            onValue(ref(db, 'site_content/categories'), (snap) => {
+                const list = document.getElementById('admin-category-list');
+                const data = snap.val(); list.innerHTML = "";
+                if(data) Object.keys(data).forEach(key => {
+                    const cat = data[key];
+                    const isChecked = cat.status !== "closed";
+                    list.innerHTML += `
+                    <div class="product-card">
+                        <div class="product-info">
+                            <b>${cat.name}</b><br>
+                            <span style="font-size:0.6rem; opacity:0.6;">${cat.type}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <label class="switch">
+                                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleCategoryStatus('${key}', this)">
+                                <span class="slider"></span>
+                            </label>
+                            <button class="btn-action btn-danger" onclick="deleteMasterData('categories/${key}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>`;
+                });
+            });
+
+            onValue(ref(db, 'site_content/account_stocks'), (snap) => {
+                const list = document.getElementById('admin-stock-list');
+                const data = snap.val(); list.innerHTML = "";
+                if(data) Object.keys(data).forEach(key => {
+                    list.innerHTML += `<div class="product-card"><div class="product-info"><b>${data[key].title}</b> (Stok: ${data[key].qty})</div><button class="btn-action btn-danger" onclick="deleteMasterData('account_stocks/${key}')"><i class="fas fa-trash"></i></button></div>`;
+                });
+            });
+
+            onValue(ref(db, 'transactions'), (snap) => {
+                const list = document.getElementById('order-list');
+                const data = snap.val(); list.innerHTML = "";
+                if(data) Object.keys(data).reverse().forEach(key => {
+                    const trx = data[key];
+                    if(trx.status === "DIPROSES") {
+                        let productName = trx.product.replace(/Diamond/g, "Zem");
+                        list.innerHTML += `<div class="product-card" style="flex-direction: column; align-items: flex-start;"><div style="font-size:0.7rem; width:100%;"><b style="color:var(--gold)">${productName}</b><br>ID/User: ${trx.username || trx.userId || trx.idz || 'N/A'}<br>Total: Rp ${trx.price ? trx.price.toLocaleString() : '0'}</div><div style="display:flex; gap:10px; width:100%; margin-top:5px;"><button class="btn-done" onclick="updateStatus('${key}', 'BERHASIL')"><i class="fas fa-check"></i> BERHASIL</button><button class="btn-cancel" onclick="updateStatus('${key}', 'GAGAL')"><i class="fas fa-times"></i> GAGAL</button></div></div>`;
+                    }
+                });
+            });
+
+            onValue(ref(db, 'settings/zepeto_prices'), (snap) => {
+                const list = document.getElementById('zepeto-list-admin');
+                const products = snap.val() || []; list.innerHTML = "";
+                products.forEach((p, index) => {
+                    let displayName = p.name.replace(/Diamond/g, "Zem");
+                    list.innerHTML += `<div class="product-card"><div class="product-info"><b>${displayName}</b><br><span>Rp ${p.price.toLocaleString()}</span></div><div style="display:flex; gap:5px;"><button class="btn-action" onclick="editHarga('ZEPETO', ${index}, '${displayName}', ${p.price})"><i class="fas fa-edit"></i></button><button class="btn-action btn-flash" onclick="makeFlashSale('ZEPETO', ${index})"><i class="fas fa-bolt"></i></button><button class="btn-action btn-danger" onclick="deleteProduct('ZEPETO', ${index})"><i class="fas fa-trash"></i></button></div></div>`;
+                });
+                window.currentZepetoData = products;
+            });
+
+            onValue(ref(db, 'settings/roblox_prices'), (snap) => {
+                const list = document.getElementById('roblox-list-admin');
+                const products = snap.val() || []; list.innerHTML = "";
+                products.forEach((p, index) => {
+                    list.innerHTML += `<div class="product-card"><div class="product-info"><b>${p.name}</b><br><span>Rp ${p.price.toLocaleString()}</span></div><div style="display:flex; gap:5px;"><button class="btn-action" onclick="editHarga('ROBLOX', ${index}, '${p.name}', ${p.price})"><i class="fas fa-edit"></i></button><button class="btn-action btn-flash" onclick="makeFlashSale('ROBLOX', ${index})"><i class="fas fa-bolt"></i></button><button class="btn-action btn-danger" onclick="deleteProduct('ROBLOX', ${index})"><i class="fas fa-trash"></i></button></div></div>`;
+                });
+                window.currentRobloxData = products;
+            });
+
+            // LOAD DATA DISCORD
+            onValue(ref(db, 'settings/discord_prices'), (snap) => {
+                const list = document.getElementById('discord-list-admin');
+                const products = snap.val() || []; list.innerHTML = "";
+                products.forEach((p, index) => {
+                    list.innerHTML += `<div class="product-card"><div class="product-info"><b>${p.name}</b><br><span>Rp ${p.price.toLocaleString()}</span></div><div style="display:flex; gap:5px;"><button class="btn-action" onclick="editHarga('DISCORD', ${index}, '${p.name}', ${p.price})"><i class="fas fa-edit"></i></button><button class="btn-action btn-flash" onclick="makeFlashSale('DISCORD', ${index})"><i class="fas fa-bolt"></i></button><button class="btn-action btn-danger" onclick="deleteProduct('DISCORD', ${index})"><i class="fas fa-trash"></i></button></div></div>`;
+                });
+                window.currentDiscordData = products;
+            });
+
+            onValue(ref(db, 'site_content/banners'), (snap) => {
+                const list = document.getElementById('admin-banner-slider-list');
+                const data = snap.val() || []; list.innerHTML = "";
+                data.forEach((url, i) => {
+                    list.innerHTML += `<div class="banner-preview-item"><img src="${url}"><div class="product-info" style="font-size: 0.6rem; word-break: break-all;">Banner ${i+1}</div><button class="btn-action btn-danger" onclick="deleteSliderBanner(${i})"><i class="fas fa-trash"></i></button></div>`;
+                });
+            });
+
+            onValue(ref(db, 'site_content/promos'), (snap) => {
+                const pList = document.getElementById('promo-admin-list');
+                pList.innerHTML = ""; const data = snap.val() || [];
+                data.forEach((p, i) => { 
+                    let displayName = p.name.replace(/Diamond/g, "Zem");
+                    pList.innerHTML += `<div class="product-card" style="border-left: 3px solid var(--danger);"><div class="product-info"><b>${displayName}</b><br><span style="color:var(--danger); font-size: 0.7rem;">Rp ${p.price.toLocaleString()}</span></div><button class="btn-action btn-danger" onclick="deletePromoItem(${i})"><i class="fas fa-trash"></i></button></div>`; 
+                });
+            });
+        }
+
+        window.toggleCategoryStatus = function(key, el) {
+            const newStatus = el.checked ? "open" : "closed";
+            update(ref(db, `site_content/categories/${key}`), { status: newStatus }).then(() => {
+                showToast(el.checked ? "Kategori Dibuka!" : "Kategori Ditutup!");
+            });
+        }
+
+        window.addAnnouncement = function() {
+            const text = document.getElementById('announcement-input').value;
+            if(!text) return;
+            get(ref(db, 'site_content/announcements')).then(s => {
+                let curr = s.val();
+                if(!curr) curr = [];
+                else if(!Array.isArray(curr)) curr = [curr];
+                curr.push(text);
+                set(ref(db, 'site_content/announcements'), curr).then(() => {
+                    showToast("Pengumuman Ditambah!");
+                    document.getElementById('announcement-input').value = "";
+                });
+            });
+        }
+
+        window.deleteAnnouncement = function(i) {
+            get(ref(db, 'site_content/announcements')).then(s => {
+                let curr = s.val();
+                if(Array.isArray(curr)) {
+                    curr.splice(i, 1);
+                    set(ref(db, 'site_content/announcements'), curr).then(() => showToast("Pengumuman Dihapus!"));
+                }
+            });
+        }
+
+        window.updateSiteIdentity = function() {
+            const name = document.getElementById('site-name-input').value;
+            const logo = document.getElementById('logo-url-input').value;
+            update(ref(db, 'site_content'), { brand_name: name, logo_url: logo }).then(() => showToast("Identitas Tersimpan!"));
+        }
+
+        window.addNewCategory = function() {
+            const name = document.getElementById('cat-new-name').value;
+            const image = document.getElementById('cat-new-img').value;
+            const link = document.getElementById('cat-new-link').value;
+            const type = document.getElementById('cat-new-type').value;
+            if(!name || !image) return;
+            const id = "cat_" + Date.now();
+            set(ref(db, 'site_content/categories/' + id), { name, image, link, type, status: "open" }).then(() => {
+                showToast("Berhasil!");
+                document.getElementById('cat-new-name').value = "";
+                document.getElementById('cat-new-img').value = "";
+            });
+        }
+
+        window.addNewStock = function() {
+            const title = document.getElementById('stock-new-title').value;
+            const price = parseInt(document.getElementById('stock-new-price').value);
+            const qty = parseInt(document.getElementById('stock-new-qty').value);
+            const image = document.getElementById('stock-new-img').value;
+            const desc = document.getElementById('stock-new-desc').value;
+            if(!title || !price) return;
+            const id = "stock_" + Date.now();
+            set(ref(db, 'site_content/account_stocks/' + id), { title, price, qty, image, description: desc }).then(() => {
+                showToast("Stok Ditambah!");
+                document.getElementById('stock-new-title').value = "";
+                document.getElementById('stock-new-price').value = "";
+                document.getElementById('stock-new-qty').value = "";
+                document.getElementById('stock-new-img').value = "";
+                document.getElementById('stock-new-desc').value = "";
+            });
+        }
+
+        window.deleteMasterData = (path) => set(ref(db, 'site_content/' + path), null).then(() => showToast("Dihapus!"));
+
+        window.addPromoManual = function() {
+            const name = document.getElementById('manual-promo-name').value;
+            const price = document.getElementById('manual-promo-price').value;
+            const oldPrice = document.getElementById('manual-promo-old').value;
+            if(!name || !price) return;
+
+            get(ref(db, 'site_content/promos')).then(s => {
+                let curr = s.val() || [];
+                curr.push({
+                    name: name,
+                    price: parseInt(price),
+                    old_price: parseInt(oldPrice) || (parseInt(price) + 5000),
+                    image: "https://i.ibb.co.com/S45mRNn7/Robux-2019-Logo-gold-svg-1.png"
+                });
+                set(ref(db, 'site_content/promos'), curr).then(() => {
+                    showToast("Flash Sale Manual Aktif!");
+                    document.getElementById('manual-promo-name').value = "";
+                    document.getElementById('manual-promo-price').value = "";
+                    document.getElementById('manual-promo-old').value = "";
+                });
+            });
+        }
+
+        window.updateSiteVisuals = function() {
+            const popup = document.getElementById('popup-url-input').value;
+            update(ref(db, 'site_content'), { popup_banner: popup }).then(() => showToast("Popup Diperbarui!"));
+        }
+
+        window.addSliderBanner = function() {
+            const url = document.getElementById('new-banner-url').value;
+            if(!url) return;
+            get(ref(db, 'site_content/banners')).then(s => {
+                let curr = s.val() || [];
+                curr.push(url);
+                set(ref(db, 'site_content/banners'), curr).then(() => {
+                    document.getElementById('new-banner-url').value = "";
+                    showToast("Banner Ditambah!");
+                });
+            });
+        }
+
+        window.deleteSliderBanner = (i) => get(ref(db, 'site_content/banners')).then(s => { let curr = s.val() || []; curr.splice(i, 1); set(ref(db, 'site_content/banners'), curr).then(() => showToast("Banner Dihapus!")); });
+        window.updateStatus = (key, status) => update(ref(db, `transactions/${key}`), { status }).then(() => showToast("Status Updated!"));
+        window.deletePromoItem = (index) => get(ref(db, 'site_content/promos')).then(s => { let curr = s.val() || []; curr.splice(index, 1); set(ref(db, 'site_content/promos'), curr).then(() => showToast("Promo Dihapus!")); });
+
+        window.editHarga = function(type, index, name, oldPrice) {
+            Swal.fire({
+                title: `Edit Harga ${name}`,
+                input: 'number',
+                inputValue: oldPrice,
+                background: '#0a0e27', color: '#fff',
+                showCancelButton: true,
+                confirmButtonText: 'Simpan'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let dbPath = '';
+                    if(type === 'ZEPETO') dbPath = 'settings/zepeto_prices';
+                    else if(type === 'ROBLOX') dbPath = 'settings/roblox_prices';
+                    else if(type === 'DISCORD') dbPath = 'settings/discord_prices';
+
+                    get(ref(db, dbPath)).then((snapshot) => {
+                        let data = snapshot.val() || [];
+                        if (data[index]) {
+                            data[index].price = parseInt(result.value);
+                            set(ref(db, dbPath), data).then(() => showToast("Harga Diperbarui!"));
+                        }
+                    });
+                }
+            });
+        }
+
+        window.addOrUpdateProduct = function(type) {
+            let prefix = '';
+            let dbPath = '';
+            if(type === 'ZEPETO') { prefix = 'zep'; dbPath = 'settings/zepeto_prices'; }
+            else if(type === 'ROBLOX') { prefix = 'rbx'; dbPath = 'settings/roblox_prices'; }
+            else if(type === 'DISCORD') { prefix = 'dsc'; dbPath = 'settings/discord_prices'; }
+
+            const id = document.getElementById(`${prefix}-new-id`).value;
+            let name = document.getElementById(`${prefix}-new-name`).value;
+            const price = document.getElementById(`${prefix}-new-price`).value;
+            
+            if(!id || !name || !price) return Swal.fire('Error', 'Isi semua data!', 'error');
+            get(ref(db, dbPath)).then(snap => {
+                let products = snap.val() || [];
+                products.push({ id, name, price: parseInt(price) });
+                set(ref(db, dbPath), products).then(() => {
+                    showToast(`${type} Ditambahkan!`);
+                    document.getElementById(`${prefix}-new-id`).value = "";
+                    document.getElementById(`${prefix}-new-name`).value = "";
+                    document.getElementById(`${prefix}-new-price`).value = "";
+                });
+            });
+        }
+
+        window.deleteProduct = function(type, index) {
+            let dbPath = '';
+            if(type === 'ZEPETO') dbPath = 'settings/zepeto_prices';
+            else if(type === 'ROBLOX') dbPath = 'settings/roblox_prices';
+            else if(type === 'DISCORD') dbPath = 'settings/discord_prices';
+
+            get(ref(db, dbPath)).then((snapshot) => {
+                let data = snapshot.val() || [];
+                data.splice(index, 1);
+                set(ref(db, dbPath), data).then(() => showToast("Dihapus!"));
+            });
+        }
+
+        window.makeFlashSale = function(type, index) {
+            let item;
+            if(type === 'ZEPETO') item = window.currentZepetoData[index];
+            else if(type === 'ROBLOX') item = window.currentRobloxData[index];
+            else if(type === 'DISCORD') item = window.currentDiscordData[index];
+
+            const nameFixed = item.name.replace(/Diamond/g, "Zem");
+            Swal.fire({
+                title: `Set Flash Sale ${type}`,
+                background: '#0a0e27', color: '#fff',
+                html: `<span class="swal-input-label">Harga Promo:</span><input id="swal-price" class="swal2-input" type="number" value="${item.price}">`,
+                showCancelButton: true,
+                preConfirm: () => { return { promoPrice: document.getElementById('swal-price').value } }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    get(ref(db, 'site_content/promos')).then(s => {
+                        let curr = s.val() || [];
+                        let imgUrl = "https://i.ibb.co.com/S45mRNn7/Robux-2019-Logo-gold-svg-1.png";
+                        if(type === 'ZEPETO') imgUrl = "https://files.catbox.moe/5m3l0z.jpg";
+                        else if(type === 'DISCORD') imgUrl = "https://cdn.worldvectorlogo.com/logos/discord-6.svg";
+
+                        curr.push({ 
+                            name: nameFixed, 
+                            price: parseInt(result.value.promoPrice), 
+                            old_price: item.price, 
+                            image: imgUrl
+                        });
+                        set(ref(db, 'site_content/promos'), curr).then(() => showToast("Flash Sale Aktif!"));
+                    });
+                }
+            });
+        }
+
+        function showToast(m) { const t = document.getElementById('status-pop'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
+    </script>
+</body>
+</html>
