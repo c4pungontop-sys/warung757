@@ -176,8 +176,8 @@
                 <input type="file" id="file-bukti" hidden accept="image/*" onchange="showFile(this)">
             </div>
             <div style="display: flex; gap: 10px;">
-                <button onclick="document.getElementById('modalPayment').style.display='none'" style="flex:1;">Batal</button>
-                <button onclick="processOrder()" style="flex:2; background:var(--gold); border:none; padding:10px; border-radius:10px; font-weight:800;">Konfirmasi</button>
+                <button onclick="document.getElementById('modalPayment').style.display='none'" style="flex:1; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; cursor: pointer;">Batal</button>
+                <button onclick="processOrder()" style="flex:2; background:var(--gold); border:none; padding:10px; border-radius:10px; font-weight:800; color: var(--dark-blue); cursor: pointer;">Konfirmasi</button>
             </div>
         </div>
     </div>
@@ -214,7 +214,6 @@
         window.selectedProduct = null;
         window.chosenMethod = null;
 
-        // --- SINKRONISASI HARGA DARI ADMIN ---
         onValue(ref(db, 'settings/roblox_prices'), (snap) => {
             if(snap.exists()) {
                 robloxProducts = snap.val();
@@ -237,7 +236,6 @@
                 const isFlash = !!promo;
                 const finalPrice = isFlash ? promo.price : p.price;
 
-                // --- LOGIKA HARGA CORET ---
                 const priceHTML = isFlash 
                     ? `<div class="product-price">
                         <span style="text-decoration: line-through; font-size: 0.7rem; opacity: 0.5; display: block;">Rp ${p.price.toLocaleString('id-ID')}</span>
@@ -282,14 +280,31 @@
         window.onload = () => { setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 500); };
 
         window.openPayment = () => {
-            if(!document.getElementById('rbx-user').value || !window.selectedProduct || !window.chosenMethod) return Swal.fire('Oops', 'Lengkapi data!', 'warning');
+            const user = document.getElementById('rbx-user').value;
+            const pass = document.getElementById('rbx-pass').value;
+            const backup = document.getElementById('rbx-backup').value;
+
+            if(!user || !pass || !backup || !window.selectedProduct || !window.chosenMethod) {
+                return Swal.fire('Oops', 'Lengkapi data akun dan pilih produk/pembayaran!', 'warning');
+            }
+
             document.getElementById('textTotal').innerText = "Rp " + window.selectedProduct.price.toLocaleString('id-ID');
             document.getElementById('modalPayment').style.display = 'flex';
+            
+            const qrImg = document.getElementById('qrImg');
             if(window.chosenMethod === "BCA") {
-                document.getElementById('qrArea').style.display = 'none'; document.getElementById('bankArea').style.display = 'block';
+                document.getElementById('qrArea').style.display = 'none'; 
+                document.getElementById('bankArea').style.display = 'block';
+            } else if (window.chosenMethod === "QRIS DANA ONLY") {
+                document.getElementById('bankArea').style.display = 'none'; 
+                document.getElementById('qrArea').style.display = 'block';
+                // Update QR DANA (Samakan dengan Checkout Akun)
+                qrImg.src = "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg";
             } else {
-                document.getElementById('bankArea').style.display = 'none'; document.getElementById('qrArea').style.display = 'block';
-                document.getElementById('qrImg').src = (window.chosenMethod === "QRIS DANA ONLY") ? "https://i.ibb.co/s9dtdcP9/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg" : "https://i.ibb.co/6RcGf5ZC/1772040416685.png";
+                document.getElementById('bankArea').style.display = 'none'; 
+                document.getElementById('qrArea').style.display = 'block';
+                // Update QR ALL (Samakan dengan Checkout Akun)
+                qrImg.src = "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
             }
         };
 
@@ -299,19 +314,52 @@
             const file = document.getElementById('file-bukti').files[0];
             if(!file) return Swal.fire('Error', 'Upload bukti bayar!', 'error');
             Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
             const trxId = "RBX-" + Date.now().toString().slice(-6);
-            const data = { id: trxId, username: document.getElementById('rbx-user').value, password: document.getElementById('rbx-pass').value, backup_code: document.getElementById('rbx-backup').value, wa: document.getElementById('wa-user').value, product: window.selectedProduct.name, price: window.selectedProduct.price, method: window.chosenMethod, status: "DIPROSES", date: new Date().toLocaleString('id-ID') };
+            const data = { 
+                id: trxId, 
+                username: document.getElementById('rbx-user').value, 
+                password: document.getElementById('rbx-pass').value, 
+                backup_code: document.getElementById('rbx-backup').value, 
+                wa: document.getElementById('wa-user').value, 
+                product: window.selectedProduct.name, 
+                price: window.selectedProduct.price, 
+                method: window.chosenMethod, 
+                status: "DIPROSES", 
+                date: new Date().toLocaleString('id-ID') 
+            };
+            
             try {
                 await set(ref(db, 'transactions/' + trxId), data);
+                
+                let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
+                history.unshift(data);
+                localStorage.setItem('robloxHistory', JSON.stringify(history));
+
                 const formData = new FormData();
-                formData.append('payload_json', JSON.stringify({ embeds: [{ title: "📦 PESANAN ROBLOX BARU - " + trxId, color: 16761095, fields: [{ name: "User", value: data.username }, { name: "Produk", value: data.product }, { name: "Harga", value: "Rp " + data.price.toLocaleString() }] }] }));
+                formData.append('payload_json', JSON.stringify({ 
+                    embeds: [{ 
+                        title: "📦 PESANAN ROBLOX BARU - " + trxId, 
+                        color: 16761095, 
+                        fields: [
+                            { name: "User", value: data.username }, 
+                            { name: "Produk", value: data.product }, 
+                            { name: "Harga", value: "Rp " + data.price.toLocaleString() },
+                            { name: "Metode", value: data.method }
+                        ] 
+                    }] 
+                }));
                 formData.append('file', file);
+                
                 await fetch("https://discord.com/api/webhooks/1476147887275642973/wdj_dux3MzeFpDcowSZSvuFPNGGzHsuwN73gbB8yDaoMT1ZVnNDrjomiBtLUqn0hjsEl", { method: 'POST', body: formData });
+                
                 Swal.close();
                 document.getElementById('modalPayment').style.display = 'none';
                 document.getElementById('pushNotif').classList.add('show');
                 setTimeout(() => window.location.href = 'riwayat-transaksi.html', 1500);
-            } catch(e) { Swal.fire('Gagal', 'Terjadi kesalahan.', 'error'); }
+            } catch(e) { 
+                Swal.fire('Gagal', 'Terjadi kesalahan sistem.', 'error'); 
+            }
         };
     </script>
     <script src="script.js"></script>
