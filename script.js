@@ -1,14 +1,14 @@
-// 1. Merapikan URL (Menghilangkan .html)
+// Menghilangkan .html dari URL
 if (window.location.pathname.endsWith(".html")) {
     const cleanUrl = window.location.pathname.replace(/\.html$/, "");
     window.history.replaceState(null, "", cleanUrl);
 }
 
-// 2. Alamat Bot (Sesuaikan Port 25578 dari gambar panel VynzzHost kamu)
+// Alamat API Bot
 const URL_BOT = 'http://vynzzhost-properties:25578/order-masuk';
 
-// 3. Fungsi Kirim Data ke Bot Discord
-async function kirimOrderan(id, item, harga, nama, nomorWa) {
+// Fungsi kirim data ke Bot Discord
+async function kirimOrderan(id, item, harga, nama, nomorWa, metode) {
     try {
         await fetch(URL_BOT, {
             method: 'POST',
@@ -18,11 +18,12 @@ async function kirimOrderan(id, item, harga, nama, nomorWa) {
                 produk: item,
                 harga: harga,
                 pembeli: nama,
-                wa: nomorWa
+                wa: nomorWa,
+                method: metode
             })
         });
-        console.log("Pesanan terkirim ke Bot Discord!");
+        console.log("Notifikasi terkirim ke Bot!");
     } catch (err) {
-        console.error("Koneksi ke bot gagal: ", err);
+        console.error("Gagal lapor ke bot: ", err);
     }
 }
