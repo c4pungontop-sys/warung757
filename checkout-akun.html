@@ -58,7 +58,7 @@
             .left-side { position: sticky; top: 80px; align-self: start; }
         }
 
-        .section-card { background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .section-card { background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: border 0.3s; }
 
         .product-preview-box { text-align: left; }
         .product-preview-box img { 
@@ -76,7 +76,6 @@
             background: rgba(0,0,0,0.2);
             padding: 10px;
             border-radius: 8px;
-            border-left: 3px solid var(--gold);
         }
 
         .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
@@ -92,7 +91,7 @@
             padding: 15px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; transition: 0.2s;
         }
         .method-item.active { border-color: var(--gold); background: rgba(212, 175, 55, 0.1); box-shadow: 0 0 10px rgba(212, 175, 55, 0.2); }
-        .method-item img { height: 25px; max-width: 120px; filter: brightness(1.1); pointer-events: none; }
+        .method-item img { height: 25px; max-width: 120px; filter: brightness(1.1); }
 
         /* Floating Footer */
         .footer-action {
@@ -115,10 +114,14 @@
         
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
         }
-        .shake-error { animation: shake 0.2s ease-in-out 0s 2; border-color: var(--error-red) !important; box-shadow: 0 0 10px rgba(255, 77, 77, 0.3); }
+        .shake-error { 
+            animation: shake 0.4s ease-in-out; 
+            border-color: var(--error-red) !important;
+            box-shadow: 0 0 10px rgba(255, 77, 77, 0.5) !important;
+        }
     </style>
 </head>
 <body>
@@ -248,10 +251,6 @@
             if (!u || u === 'undefined') return 'https://via.placeholder.com/300?text=No+Image';
             let url = u.trim();
             if (url.startsWith('http://')) url = url.replace('http://', 'https://');
-            if (url.includes('<img')) {
-                const match = url.match(/src=["']([^"']+)["']/);
-                url = match ? match[1] : url;
-            }
             return url;
         }
 
@@ -264,35 +263,25 @@
             get(accountRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     currentAccount = snapshot.val();
-                    
                     document.getElementById('p-title').innerText = currentAccount.title;
                     document.getElementById('p-desc').innerText = currentAccount.description || "Tidak ada deskripsi tambahan.";
                     document.getElementById('p-price-display').innerText = "Rp " + currentAccount.price.toLocaleString('id-ID');
                     document.getElementById('footerPrice').innerText = "Rp " + currentAccount.price.toLocaleString('id-ID');
-                    
-                    const finalImg = cleanUrl(currentAccount.image);
-                    document.getElementById('p-img').src = finalImg;
-                    
+                    document.getElementById('p-img').src = cleanUrl(currentAccount.image);
                     const msg = encodeURIComponent(`Halo Admin, saya ingin bertanya tentang akun: *${currentAccount.title}*`);
                     document.getElementById('wa-tanya').href = `https://wa.me/6283819531840?text=${msg}`;
-                    
                     document.getElementById('loader').style.display = 'none';
                 } else {
                     Swal.fire('Error', 'Data akun sudah tidak tersedia.', 'error').then(() => {
                         window.location.href = 'index.html';
                     });
                 }
-            }).catch(err => {
-                console.error("Firebase Error:", err);
-                window.location.href = 'index.html';
             });
         }
 
         window.updateTotalDisplay = () => {
             if(!currentAccount) return;
             let qty = parseInt(document.getElementById('buy-qty').value) || 1;
-            if(qty < 1) qty = 1;
-            
             const total = currentAccount.price * qty;
             document.getElementById('footerPrice').innerText = "Rp " + total.toLocaleString('id-ID');
         };
@@ -301,30 +290,19 @@
             window.chosenMethod = m;
             document.querySelectorAll('.method-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
+            document.getElementById('card-step-2').classList.remove('shake-error');
         };
 
         window.openPayment = () => {
-            const contactInput = document.getElementById('contact-info');
+            const contactInfo = document.getElementById('contact-info');
             
-            // Perbaikan Logika Shake untuk kontak kosong
-            if(!contactInput.value.trim()) {
+            if(!contactInfo.value.trim()) {
                 triggerShake('contact-info');
-                return Swal.fire({
-                    icon: 'warning',
-                    title: 'Data Belum Lengkap',
-                    text: 'Harap isi Nomor WA / Email Anda!',
-                    confirmButtonColor: '#d4af37'
-                });
+                return Swal.fire('Info', 'Harap isi kontak Anda!', 'warning');
             }
-            
             if(!window.chosenMethod) {
                 triggerShake('card-step-2');
-                return Swal.fire({
-                    icon: 'warning',
-                    title: 'Pilih Pembayaran',
-                    text: 'Silakan pilih salah satu metode pembayaran!',
-                    confirmButtonColor: '#d4af37'
-                });
+                return Swal.fire('Info', 'Pilih metode pembayaran!', 'warning');
             }
 
             document.getElementById('textTotal').innerText = document.getElementById('footerPrice').innerText;
@@ -340,18 +318,15 @@
             } else {
                 bankArea.style.display = 'none';
                 qrArea.style.display = 'block';
-                // Gunakan direktori gambar yang valid
-                qrImg.src = (window.chosenMethod === "QRIS DANA ONLY") ? "https://i.ibb.co/mCNgdP20/20260225-045526.png" : "https://i.ibb.co/6RcGf5ZC/1772040416685.png";
+                // Link gambar diperbarui sesuai request
+                qrImg.src = (window.chosenMethod === "QRIS DANA ONLY") 
+                    ? "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg" 
+                    : "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
             }
         };
 
         window.processOrder = async () => {
             const file = document.getElementById('file-bukti').files[0];
-            const contact = document.getElementById('contact-info').value;
-            const delivery = document.getElementById('delivery-method').value;
-            const qty = parseInt(document.getElementById('buy-qty').value) || 1;
-            const finalPrice = currentAccount.price * qty;
-
             if(!file) {
                 triggerShake('up-zone');
                 return Swal.fire('Wajib', 'Upload bukti transfer terlebih dahulu!', 'info');
@@ -365,12 +340,12 @@
             try {
                 await set(ref(db, 'transactions/' + trxId), {
                     id: trxId,
-                    contact: contact,
+                    contact: document.getElementById('contact-info').value,
                     product: currentAccount.title,
-                    qty: qty,
-                    price: finalPrice,
+                    qty: parseInt(document.getElementById('buy-qty').value),
+                    price: currentAccount.price * (parseInt(document.getElementById('buy-qty').value) || 1),
                     method: window.chosenMethod,
-                    delivery: delivery,
+                    delivery: document.getElementById('delivery-method').value,
                     status: "DIPROSES",
                     date: dateStr
                 });
@@ -382,11 +357,9 @@
                         color: 15844367,
                         fields: [
                             { name: "Produk", value: currentAccount.title, inline: true },
-                            { name: "Jumlah", value: qty + " Unit", inline: true },
-                            { name: "Total", value: "Rp " + finalPrice.toLocaleString('id-ID'), inline: true },
-                            { name: "Penerima", value: contact, inline: false },
-                            { name: "Metode", value: window.chosenMethod, inline: true },
-                            { name: "Via", value: delivery, inline: true }
+                            { name: "Total", value: document.getElementById('footerPrice').innerText, inline: true },
+                            { name: "Penerima", value: document.getElementById('contact-info').value, inline: false },
+                            { name: "Metode", value: window.chosenMethod, inline: true }
                         ],
                         footer: { text: "Warung 757 - Order System" }
                     }]
@@ -398,23 +371,21 @@
                     body: formData 
                 });
 
-                Swal.fire('Berhasil!', 'Pesanan Anda telah diterima admin. Silakan tunggu di WhatsApp/Email.', 'success')
+                Swal.fire('Berhasil!', 'Pesanan Anda telah diterima admin.', 'success')
                 .then(() => window.location.href = "index.html");
 
             } catch (e) {
-                Swal.fire('Gagal', 'Terjadi kesalahan sistem, silakan hubungi admin.', 'error');
+                Swal.fire('Gagal', 'Terjadi kesalahan sistem.', 'error');
             }
         };
 
-        // Fungsi Shake diperkuat
-        window.triggerShake = (id) => {
+        function triggerShake(id) {
             const el = document.getElementById(id);
             if(el) {
                 el.classList.add('shake-error');
-                el.focus();
-                setTimeout(() => el.classList.remove('shake-error'), 500);
+                setTimeout(() => el.classList.remove('shake-error'), 600);
             }
-        };
+        }
 
         window.zoomImage = () => {
             Swal.fire({
