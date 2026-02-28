@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Checkout Akun | Warung 757</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Lexend:wght@500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --dark-blue: #0a0e27;
+            --gold: #d4af37;
+            --gold-light: #f1d592;
+            --white: #ffffff;
+            --card-bg: #161b3d;
+            --error-red: #ff4d4d;
+            --font-title: 'Lexend', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--dark-blue);
+            background-image: radial-gradient(circle at center, #16215b 0%, #0a0e27 100%);
+            color: var(--white);
+            min-height: 100vh;
+            padding-bottom: 120px;
+            font-family: var(--font-body);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, .step-num, .method-price, .btn-order, #footerPrice, .total-info h2 {
+            font-family: var(--font-title);
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-8px); }
+        }
+        .shake-error {
+            animation: shake 0.4s ease-in-out;
+            border-color: var(--error-red) !important;
+            box-shadow: 0 0 15px rgba(255, 77, 77, 0.4) !important;
+        }
+
+        #loader {
+            position: fixed; width: 100%; height: 100%; background: var(--dark-blue);
+            display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .coda-spinner {
+            width: 50px; height: 50px; border: 4px solid rgba(212, 175, 55, 0.1);
+            border-top: 4px solid var(--gold); border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(212,175,55,0.1); }
+        .header h2 { font-size: 1.1rem; font-weight: 800; color: var(--gold); letter-spacing: 1px; }
+
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; display: grid; grid-template-columns: 1fr; gap: 20px; }
+
+        @media (min-width: 992px) {
+            .container { grid-template-columns: 400px 1fr; }
+            .left-side { position: sticky; top: 20px; align-self: start; }
+        }
+
+        .section-card { background: var(--card-bg); border-radius: 12px; padding: 25px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 20px; }
+
+        .product-preview-box { text-align: center; }
+        .product-preview-box img { 
+            width: 100%; max-width: 250px; border-radius: 15px; 
+            border: 2px solid var(--gold); margin-bottom: 15px; cursor: zoom-in;
+        }
+
+        .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .step-num { width: 32px; height: 32px; background: var(--gold); color: var(--dark-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; }
+        .step-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+
+        .input-box, .select-box { width: 100%; padding: 14px; background: #0a0e27; border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 10px; color: white; margin-bottom: 12px; outline: none; transition: 0.3s; font-family: var(--font-body); font-size: 0.9rem; }
+        .input-box:focus { border-color: var(--gold); }
+
+        .payment-list { display: flex; flex-direction: column; gap: 10px; }
+        .method-item { 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 18px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; transition: 0.2s;
+        }
+        .method-item.active { border-color: var(--gold); background: rgba(212, 175, 55, 0.08); }
+        .method-item img { height: 18px; }
+
+        .footer-action {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0e27;
+            padding: 18px 5%; border-top: 1px solid rgba(212,175,55,0.2);
+            display: flex; justify-content: space-between; align-items: center; z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        .total-info h2 { font-size: 1.4rem; color: var(--gold); font-weight: 700; }
+        .btn-order { background: var(--gold); color: var(--dark-blue); padding: 12px 28px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 16px; padding: 25px; border: 1px solid rgba(212, 175, 55, 0.3); text-align: center; }
+        .upload-zone { margin: 18px 0; padding: 20px; border: 2px dashed rgba(212, 175, 55, 0.3); border-radius: 12px; cursor: pointer; background: rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <div id="loader"><div class="coda-spinner"></div></div>
+
+    <div class="header">
+        <a href="index.html" style="color: var(--gold); font-size: 1.1rem;"><i class="fas fa-chevron-left"></i></a>
+        <h2>CHECKOUT AKUN</h2>
+    </div>
+
+    <div class="container">
+        <div class="left-side">
+            <div class="section-card product-preview-box">
+                <img id="p-img" src="https://via.placeholder.com/300?text=Memuat..." alt="Akun" onclick="zoomImage()">
+                <h2 id="p-title" style="font-size: 1.2rem; color: var(--gold-light);">Memuat Nama...</h2>
+                <p id="p-price-display" style="font-size: 1.4rem; font-weight: 800; margin-top: 5px;">Rp 0</p>
+                <hr style="opacity: 0.1; margin: 15px 0;">
+                <a href="#" id="wa-tanya" target="_blank" style="color: #25d366; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                    <i class="fab fa-whatsapp"></i> Tanya Detail Akun
+                </a>
+            </div>
+        </div>
+
+        <div class="right-side">
+            <div class="section-card" id="card-step-1">
+                <div class="step-header">
+                    <div class="step-num">1</div>
+                    <h3>Metode Pengiriman</h3>
+                </div>
+                <select id="delivery-method" class="select-box">
+                    <option value="WhatsApp">Kirim via WhatsApp</option>
+                    <option value="Email">Kirim via Email</option>
+                </select>
+                <input type="text" id="contact-info" class="input-box" placeholder="No. WA atau Email Penerima">
+            </div>
+
+            <div class="section-card" id="card-step-2">
+                <div class="step-header">
+                    <div class="step-num">2</div>
+                    <h3>Pilih Pembayaran</h3>
+                </div>
+                <div class="payment-list">
+                    <div class="method-item" onclick="selectMetode(this, 'QRIS ALL PAYMENT')">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo_QRIS.svg">
+                        <span class="method-price">Pilih</span>
+                    </div>
+                    <div class="method-item" onclick="selectMetode(this, 'BCA')">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg">
+                        <span class="method-price">Pilih</span>
+                    </div>
+                    <div class="method-item" onclick="selectMetode(this, 'QRIS DANA ONLY')">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Logo_dana_blue.svg">
+                        <span class="method-price">Pilih</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-action">
+        <div class="total-info">
+            <p style="font-size: 0.7rem; opacity: 0.6;">TOTAL PEMBAYARAN</p>
+            <h2 id="footerPrice">Rp 0</h2>
+        </div>
+        <button class="btn-order" onclick="openPayment()">Beli Sekarang</button>
+    </div>
+
+    <div class="modal-overlay" id="modalPayment">
+        <div class="modal-content">
+            <h2 style="font-size: 1.1rem; color: var(--gold);">Detail Pembayaran</h2>
+            <p id="textTotal" style="font-size: 1.5rem; font-weight: 800; margin: 12px 0;"></p>
+
+            <div id="qrArea" style="display:none; margin: 12px 0;">
+                <div style="background: white; padding: 10px; border-radius: 12px; display: inline-block; border: 2px solid var(--gold);">
+                    <img id="qrImg" src="" style="width: 180px;">
+                </div>
+            </div>
+
+            <div id="bankArea" style="display:none; padding: 20px 0;">
+                <p style="font-size: 0.8rem; opacity: 0.7;">Transfer Manual BCA:</p>
+                <h2 style="letter-spacing: 1px; color: var(--gold-light);">4600518033</h2>
+                <p style="font-size: 0.85rem;">A/N RIAN APANDI</p>
+            </div>
+
+            <div class="upload-zone" id="up-zone" onclick="document.getElementById('file-bukti').click()">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 1.8rem; color: var(--gold); margin-bottom: 8px;"></i><br>
+                <span id="up-text" style="font-size: 0.8rem; color: var(--gold-light);">Upload Bukti Bayar</span>
+                <input type="file" id="file-bukti" hidden accept="image/*" onchange="showFile(this)">
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button onclick="closeModal()" style="flex:1; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:white;">Batal</button>
+                <button id="btn-final" onclick="processOrder()" style="flex:2; padding:12px; border-radius:10px; background:var(--gold); border:none; font-weight: 700; color:var(--dark-blue);">Konfirmasi</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDU-cVQatcbyA-RSM-zftZf1NH5q9fcFI",
+            authDomain: "warung-757.firebaseapp.com",
+            projectId: "warung-757",
+            databaseURL: "https://warung-757-default-rtdb.firebaseio.com"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const accountId = urlParams.get('id');
+        let currentAccount = null;
+        window.chosenMethod = null;
+
+        if (!accountId) window.location.href = 'index.html';
+
+        // Load Data Akun
+        get(ref(db, `site_content/account_stocks/${accountId}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                currentAccount = snapshot.val();
+                document.getElementById('p-title').innerText = currentAccount.title;
+                const priceFormatted = "Rp " + currentAccount.price.toLocaleString('id-ID');
+                document.getElementById('p-price-display').innerText = priceFormatted;
+                document.getElementById('footerPrice').innerText = priceFormatted;
+                
+                // Image handling
+                let imgUrl = currentAccount.image;
+                if(imgUrl.includes('img src=')) imgUrl = imgUrl.split('src="')[1].split('"')[0];
+                document.getElementById('p-img').src = imgUrl;
+                
+                const msg = encodeURIComponent(`Halo Admin, saya ingin bertanya tentang akun: *${currentAccount.title}*`);
+                document.getElementById('wa-tanya').href = `https://wa.me/6283819531840?text=${msg}`;
+                
+                document.getElementById('loader').style.display = 'none';
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        window.selectMetode = (el, m) => {
+            window.chosenMethod = m;
+            document.querySelectorAll('.method-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+        };
+
+        window.openPayment = () => {
+            if(!document.getElementById('contact-info').value) return triggerShake('card-step-1');
+            if(!window.chosenMethod) return triggerShake('card-step-2');
+
+            document.getElementById('textTotal').innerText = document.getElementById('footerPrice').innerText;
+            document.getElementById('modalPayment').style.display = 'flex';
+
+            const qrArea = document.getElementById('qrArea');
+            const bankArea = document.getElementById('bankArea');
+            const qrImg = document.getElementById('qrImg');
+
+            if(window.chosenMethod === "BCA") {
+                qrArea.style.display = 'none';
+                bankArea.style.display = 'block';
+            } else {
+                bankArea.style.display = 'none';
+                qrArea.style.display = 'block';
+                qrImg.src = (window.chosenMethod === "QRIS DANA ONLY") ? "https://i.ibb.co/mCNgdP20/20260225-045526.png" : "https://i.ibb.co/6RcGf5ZC/1772040416685.png";
+            }
+        };
+
+        window.processOrder = async () => {
+            const file = document.getElementById('file-bukti').files[0];
+            const contact = document.getElementById('contact-info').value;
+            const delivery = document.getElementById('delivery-method').value;
+
+            if(!file) return triggerShake('up-zone');
+
+            Swal.fire({ title: 'Mengirim...', allowOutsideClick: false, background: '#0a0e27', color: '#fff', didOpen: () => Swal.showLoading() });
+
+            const trxId = "ACC-" + Math.floor(100000 + Math.random() * 900000);
+            const dateStr = new Date().toLocaleString('id-ID');
+
+            try {
+                await set(ref(db, 'transactions/' + trxId), {
+                    id: trxId,
+                    contact: contact,
+                    product: currentAccount.title,
+                    price: currentAccount.price,
+                    method: window.chosenMethod,
+                    delivery: delivery,
+                    status: "DIPROSES",
+                    date: dateStr
+                });
+
+                // Simpan Riwayat
+                let history = JSON.parse(localStorage.getItem('trx_history')) || [];
+                history.unshift({ id: trxId, product: currentAccount.title, date: dateStr, status: "DIPROSES", price: currentAccount.price });
+                localStorage.setItem('trx_history', JSON.stringify(history));
+
+                // Kirim Webhook Discord
+                const formData = new FormData();
+                formData.append('payload_json', JSON.stringify({
+                    embeds: [{
+                        title: "🛒 PESANAN AKUN BARU: " + trxId,
+                        color: 16753920,
+                        fields: [
+                            { name: "Produk", value: currentAccount.title, inline: true },
+                            { name: "Harga", value: "Rp " + currentAccount.price.toLocaleString('id-ID'), inline: true },
+                            { name: "Kontak", value: contact, inline: false },
+                            { name: "Metode", value: window.chosenMethod, inline: true },
+                            { name: "Pengiriman", value: delivery, inline: true }
+                        ]
+                    }]
+                }));
+                formData.append('file', file);
+                
+                await fetch("https://discord.com/api/webhooks/1476147774486478921/96VB3pb54bQdt9jgIdru1YmpsCJjCXl9rYkM_3TOIsbh-KkGoFKfWqg6Tx5SO4P0VbpF", { 
+                    method: 'POST', 
+                    body: formData 
+                });
+
+                Swal.fire({
+                    title: 'Berhasil!',
+                    text: 'Pesanan sedang diproses admin.',
+                    icon: 'success',
+                    confirmButtonColor: '#d4af37'
+                }).then(() => window.location.href = "index.html");
+
+            } catch (e) {
+                Swal.fire('Gagal', e.message, 'error');
+            }
+        };
+
+        function triggerShake(id) {
+            const el = document.getElementById(id);
+            el.classList.add('shake-error');
+            setTimeout(() => el.classList.remove('shake-error'), 400);
+        }
+
+        window.zoomImage = () => {
+            Swal.fire({
+                imageUrl: document.getElementById('p-img').src,
+                showConfirmButton: false,
+                background: 'rgba(0,0,0,0.9)',
+                showCloseButton: true
+            });
+        };
+
+        window.showFile = (input) => {
+            if(input.files[0]) {
+                document.getElementById('up-text').innerText = "✓ " + input.files[0].name;
+                document.getElementById('up-zone').style.borderColor = "#25d366";
+            }
+        };
+
+        window.closeModal = () => { document.getElementById('modalPayment').style.display = 'none'; };
+</script>
+    <script src="script.js"></script>
+</body>
+</html>
