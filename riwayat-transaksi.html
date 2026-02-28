@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Riwayat Transaksi | Warung 757</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --dark-blue: #0a0e27;
+            --royal-blue: #16215b;
+            --gold: #d4af37;
+            --gold-light: #f1d592;
+            --white: #ffffff;
+            --danger: #ff4d4d;
+            --success: #25d366;
+            --warning: #ffc107;
+        }
+        body {
+            background: var(--dark-blue);
+            background-image: radial-gradient(circle at center, #16215b 0%, #0a0e27 100%);
+            font-family: 'Poppins', sans-serif; color: var(--white);
+            min-height: 100vh; padding-bottom: 40px;
+        }
+        .header { padding: 25px 20px 10px 20px; display: flex; align-items: center; gap: 15px; }
+        .btn-back {
+            width: 40px; height: 40px; background: rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--gold); border-radius: 12px;
+            color: var(--gold); display: flex; align-items: center; justify-content: center; text-decoration: none;
+        }
+
+        .tab-nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+            position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .tab-btn {
+            background: none; border: none; color: rgba(255, 255, 255, 0.4);
+            font-family: 'Poppins', sans-serif; font-size: 0.65rem; font-weight: 700;
+            padding: 12px 5px; cursor: pointer; position: relative;
+            text-transform: uppercase; letter-spacing: 1px; flex: 1;
+        }
+        .tab-btn.active { color: var(--gold); }
+        .tab-btn.active::after {
+            content: ""; position: absolute; bottom: 0; left: 20%;
+            width: 60%; height: 3px; background: var(--gold);
+            border-radius: 10px 10px 0 0;
+        }
+
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .history-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 16px; padding: 15px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: relative; overflow: hidden;
+        }
+
+        .status-line { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+        .line-batal { background: var(--danger); }
+        .line-proses { background: var(--warning); }
+        .line-berhasil { background: var(--success); }
+
+        .info-left h4 { font-size: 0.8rem; font-weight: 600; color: var(--white); }
+        .info-left p { font-size: 0.65rem; opacity: 0.6; margin-top: 2px; }
+        .trx-id { font-size: 0.6rem; color: var(--gold-light); margin-top: 5px; display: block; font-family: monospace; }
+
+        .info-right { text-align: right; }
+        .price { font-size: 0.85rem; font-weight: 800; color: var(--gold-light); margin-bottom: 4px; }
+
+        .icon-status { font-size: 0.9rem; }
+        .color-batal { color: var(--danger); }
+        .color-proses { color: var(--warning); }
+        .color-berhasil { color: var(--success); }
+
+        .empty-state { text-align: center; padding: 60px 0; opacity: 0.4; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="index.html" class="btn-back"><i class="fas fa-chevron-left"></i></a>
+        <h2 style="font-size: 1rem; font-weight: 800; color: var(--gold);">RIWAYAT PESANAN</h2>
+    </div>
+
+    <div class="tab-nav">
+        <button class="tab-btn" onclick="openTab(event, 'tab-batal')">GAGAL</button>
+        <button class="tab-btn active" onclick="openTab(event, 'tab-proses')">PROSES</button>
+        <button class="tab-btn" onclick="openTab(event, 'tab-berhasil')">BERHASIL</button>
+    </div>
+
+    <div class="container">
+        <div id="tab-batal" class="tab-content">
+            <div id="list-batal"></div>
+        </div>
+        <div id="tab-proses" class="tab-content active">
+            <div id="list-proses"></div>
+        </div>
+        <div id="tab-berhasil" class="tab-content">
+            <div id="list-berhasil"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDU-cVQatcbyA-RSM-zftZf1NH5q9fcFI",
+            authDomain: "warung-757.firebaseapp.com",
+            projectId: "warung-757",
+            databaseURL: "https://warung-757-default-rtdb.firebaseio.com"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.openTab = function(evt, tabId) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) tabcontent[i].classList.remove("active");
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
+            document.getElementById(tabId).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        function createCard(data, type) {
+            let lineClass = ""; let iconClass = ""; let colorClass = "";
+            if(type === 'batal') { 
+                lineClass = "line-batal"; iconClass = "fa-times-circle"; colorClass = "color-batal"; 
+            } else if(type === 'proses') { 
+                lineClass = "line-proses"; iconClass = "fa-sync-alt fa-spin"; colorClass = "color-proses"; 
+            } else { 
+                lineClass = "line-berhasil"; iconClass = "fa-check-circle"; colorClass = "color-berhasil"; 
+            }
+
+            return `
+                <div class="history-card">
+                    <div class="status-line ${lineClass}"></div>
+                    <div class="info-left">
+                        <h4>${data.product}</h4>
+                        <p><i class="far fa-clock"></i> ${data.date}</p>
+                        <span class="trx-id">#${data.id.toUpperCase()}</span>
+                    </div>
+                    <div class="info-right">
+                        <div class="price">Rp ${(parseInt(data.price) || 0).toLocaleString('id-ID')}</div>
+                        <i class="fas ${iconClass} ${colorClass} icon-status"></i>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderHistory() {
+            const trxRef = ref(db, 'transactions');
+
+            onValue(trxRef, (snapshot) => {
+                const firebaseData = snapshot.val() || {};
+
+                // Menggunakan 'zepetoHistory' agar sinkron dengan file Topup Roblox sebelumnya
+                let myOrders = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
+
+                // Pembersihan otomatis data lama (3 hari yang sudah berhasil)
+                const threeDaysAgo = Date.now() - (3 * 24 * 60 * 60 * 1000);
+                myOrders = myOrders.filter(item => {
+                    const trx = firebaseData[item.id];
+                    if(trx && trx.timestamp < threeDaysAgo && trx.status === 'BERHASIL') return false;
+                    return true;
+                });
+                localStorage.setItem('zepetoHistory', JSON.stringify(myOrders));
+
+                let html = { proses: "", berhasil: "", batal: "" };
+
+                // Memproses data berdasarkan urutan terbaru
+                myOrders.forEach(localItem => {
+                    // Cek data di Firebase, jika tidak ada (mungkin dihapus admin), gunakan data lokal sementara
+                    const data = firebaseData[localItem.id] || localItem;
+                    const status = data.status.toUpperCase();
+
+                    if (status === 'GAGAL' || status === 'DIBATALKAN') { 
+                        html.batal += createCard(data, 'batal'); 
+                    } else if (status === 'BERHASIL') { 
+                        html.berhasil += createCard(data, 'berhasil'); 
+                    } else { 
+                        // Mencakup status 'DIPROSES' atau status lainnya
+                        html.proses += createCard(data, 'proses'); 
+                    }
+                });
+
+                const empty = `<div class="empty-state"><i class="fas fa-receipt" style="font-size:2rem; margin-bottom:10px;"></i><br>Tidak ada data</div>`;
+
+                document.getElementById('list-batal').innerHTML = html.batal || empty;
+                document.getElementById('list-proses').innerHTML = html.proses || empty;
+                document.getElementById('list-berhasil').innerHTML = html.berhasil || empty;
+            });
+        }
+
+        renderHistory();
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
