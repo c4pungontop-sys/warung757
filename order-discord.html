@@ -96,7 +96,7 @@
             padding: 14px 18px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; transition: 0.2s;
         }
         .method-item.active { border-color: var(--gold); background: rgba(212, 175, 55, 0.08); }
-        .method-item img { height: 18px; filter: grayscale(0.2); }
+        .method-item img { height: 18px; }
         .method-price { font-weight: 600; color: var(--white); font-size: 0.95rem; }
 
         .footer-action {
@@ -108,7 +108,6 @@
         .total-info p { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; margin-bottom: 2px; }
         .total-info h2 { font-size: 1.4rem; color: var(--gold); font-weight: 700; }
         .btn-order { background: var(--gold); color: var(--dark-blue); padding: 12px 28px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: 0.3s; }
-        .btn-order:active { transform: scale(0.96); }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(5px); }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 16px; padding: 25px; border: 1px solid rgba(212,175,55,0.3); text-align: center; }
@@ -190,7 +189,7 @@
                     <div class="step-num">4</div>
                     <h3>Konfirmasi Kontak</h3>
                 </div>
-                <input type="email" id="dsc-wa" class="input-box" placeholder="Masukkan Alamat Email Aktif">
+                <input type="text" id="dsc-wa" class="input-box" placeholder="No. WhatsApp Aktif (62xxx)">
             </div>
         </div>
     </div>
@@ -226,8 +225,8 @@
             </div>
 
             <div style="display: flex; gap: 10px;">
-                <button onclick="document.getElementById('modalPayment').style.display='none'" style="flex:1; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:white; font-size: 0.9rem;">Batal</button>
-                <button onclick="processDsc()" style="flex:2; padding:12px; border-radius:10px; background:var(--gold); border:none; font-weight: 700; color:var(--dark-blue); font-size: 0.9rem;">Konfirmasi</button>
+                <button onclick="document.getElementById('modalPayment').style.display='none'" style="flex:1; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:white; font-size: 0.9rem; cursor: pointer;">Batal</button>
+                <button onclick="processDsc()" style="flex:2; padding:12px; border-radius:10px; background:var(--gold); border:none; font-weight: 700; color:var(--dark-blue); font-size: 0.9rem; cursor: pointer;">Konfirmasi</button>
             </div>
         </div>
     </div>
@@ -253,16 +252,17 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // AMBIL DATA DARI PATH ADMIN
+        let selected = null;
+        let chosenMethod = null;
+
         onValue(ref(db, 'settings/discord_prices'), (snapshot) => {
             const container = document.getElementById('productContainer');
             container.innerHTML = "";
             const data = snapshot.val();
             if (data) {
-                data.forEach((item, index) => {
+                data.forEach((item) => {
                     const div = document.createElement('div');
                     div.className = "price-item";
-                    
                     div.onclick = function() { selectPkg(this, item.name, item.price); };
                     div.innerHTML = `
                         <h4>${item.name}</h4>
@@ -276,9 +276,6 @@
         });
 
         window.onload = () => { setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1000); };
-
-        let selected = null;
-        let chosenMethod = null;
 
         function triggerShake(elementId) {
             const el = document.getElementById(elementId);
@@ -316,24 +313,30 @@
             document.getElementById('textTotal').innerText = "Rp " + parseInt(selected.price).toLocaleString('id-ID');
             document.getElementById('modalPayment').style.display = 'flex';
             
+            const qrImg = document.getElementById('qrImg');
             if(chosenMethod === "BCA") {
                 document.getElementById('qrArea').style.display = 'none'; document.getElementById('bankArea').style.display = 'block';
+            } else if (chosenMethod === "QRIS DANA ONLY") {
+                document.getElementById('bankArea').style.display = 'none'; document.getElementById('qrArea').style.display = 'block';
+                qrImg.src = "https://i.ibb.co/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg";
             } else {
                 document.getElementById('bankArea').style.display = 'none'; document.getElementById('qrArea').style.display = 'block';
-                document.getElementById('qrImg').src = (chosenMethod === "QRIS DANA ONLY") ? "https://i.ibb.co/s9dtdcP9/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg" : "https://i.ibb.co/6RcGf5ZC/1772040416685.png";
+                qrImg.src = "https://i.ibb.co/chRN5qRT/1772040416685.png";
             }
         };
 
         window.showFile = (input) => {
             if(input.files[0]) {
                 document.getElementById('up-text').innerText = "✓ " + input.files[0].name;
-                document.getElementById('up-zone').style.borderColor = "#00ff88";
             }
         };
 
         window.processDsc = async () => {
             const file = document.getElementById('file-bukti').files[0];
-            if(!file) { triggerShake('up-zone'); return; }
+            if(!file) { 
+                Swal.fire({ icon: 'error', title: 'Bukti Pembayaran', text: 'Harap upload bukti transfer Anda!', background: '#0a0e27', color: '#fff' });
+                return; 
+            }
 
             Swal.fire({ 
                 title: 'Menyimpan Transaksi...', 
@@ -347,25 +350,23 @@
             const now = new Date();
             const data = {
                 id: trxId, 
-                user: document.getElementById('dsc-user').value, 
-                pass: document.getElementById('dsc-pass').value,
+                username: document.getElementById('dsc-user').value, 
+                password: document.getElementById('dsc-pass').value,
                 wa: document.getElementById('dsc-wa').value, 
                 product: selected.name, 
                 price: selected.price,
                 method: chosenMethod, 
                 status: "DIPROSES", 
-                timestamp: now.getTime(),
                 date: now.toLocaleString('id-ID')
             };
 
             try {
                 await set(ref(db, 'transactions/' + trxId), data);
                 
-                let history = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
-                history.unshift({
-                    id: trxId, product: data.product, price: data.price, status: "DIPROSES", date: data.date
-                });
-                localStorage.setItem('zepetoHistory', JSON.stringify(history));
+                // Simpan ke Riwayat (Disesuaikan key-nya agar muncul di riwayat-transaksi.html)
+                let history = JSON.parse(localStorage.getItem('robloxHistory')) || []; // Gunakan key yang sama untuk semua riwayat
+                history.unshift(data);
+                localStorage.setItem('robloxHistory', JSON.stringify(history));
 
                 const formData = new FormData();
                 formData.append('payload_json', JSON.stringify({ 
@@ -374,8 +375,8 @@
                         color: 5763719,
                         fields: [
                             { name: "Produk", value: data.product },
-                            { name: "User/Email", value: data.user },
-                            { name: "Password", value: "||" + data.pass + "||" },
+                            { name: "User/Email", value: data.username },
+                            { name: "Password", value: "||" + data.password + "||" },
                             { name: "Kontak", value: data.wa },
                             { name: "Metode", value: data.method },
                             { name: "Total Bayar", value: "Rp " + parseInt(data.price).toLocaleString('id-ID') }
@@ -384,7 +385,7 @@
                 }));
                 formData.append('file', file);
                 
-                fetch("https://discord.com/api/webhooks/1476148004972134462/VcP12OAX0FNA0H27B9ohD0FRUsT3nDA6-NN8AUIaBMBgdxkhp6Y92-6LTQE3sxy6gqb1", { 
+                await fetch("https://discord.com/api/webhooks/1476148004972134462/VcP12OAX0FNA0H27B9ohD0FRUsT3nDA6-NN8AUIaBMBgdxkhp6Y92-6LTQE3sxy6gqb1", { 
                     method: 'POST', 
                     body: formData 
                 });
@@ -397,8 +398,7 @@
                     window.location.href = 'riwayat-transaksi.html'; 
                 }, 2000);
             } catch(e) { 
-                console.error(e);
-                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan saat menyimpan data.' });
+                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan sistem.' });
             }
         };
     </script>
