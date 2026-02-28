@@ -112,15 +112,15 @@
 
         .input-label { font-size: 0.75rem; color: var(--gold-light); margin-bottom: 6px; display: block; font-weight: 600; text-align: left; }
         
+        /* Shake Animation yang lebih rapi */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-10px); }
-            40%, 80% { transform: translateX(10px); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
         }
         .shake-error { 
-            animation: shake 0.4s ease-in-out; 
+            animation: shake 0.2s ease-in-out 2; 
             border-color: var(--error-red) !important;
-            box-shadow: 0 0 10px rgba(255, 77, 77, 0.5) !important;
         }
     </style>
 </head>
@@ -318,7 +318,7 @@
             } else {
                 bankArea.style.display = 'none';
                 qrArea.style.display = 'block';
-                // Link gambar diperbarui sesuai request
+                // Update Link Gambar sesuai permintaan
                 qrImg.src = (window.chosenMethod === "QRIS DANA ONLY") 
                     ? "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg" 
                     : "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
@@ -383,7 +383,7 @@
             const el = document.getElementById(id);
             if(el) {
                 el.classList.add('shake-error');
-                setTimeout(() => el.classList.remove('shake-error'), 600);
+                setTimeout(() => el.classList.remove('shake-error'), 500);
             }
         }
 
