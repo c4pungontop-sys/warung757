@@ -26,7 +26,7 @@
             50% { transform: scale(1.2); opacity: 0.7; color: #ffeb3b; }
             100% { transform: scale(1); opacity: 1; }
         }
-        
+
         @keyframes spaceShiny {
             0%, 100% { opacity: 0.3; transform: scale(1); }
             50% { opacity: 0.8; transform: scale(1.2); }
@@ -127,7 +127,7 @@
         /* --- CATEGORY GRID --- */
         .category-grid-2x2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; padding: 0 5%; position: relative; z-index: 2; }
         @media (max-width: 480px) { .category-grid-2x2 { grid-template-columns: 1fr 1fr; } }
-        
+
         .category-card-medium { 
             background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(212, 175, 55, 0.2); 
             border-radius: 18px; padding: 15px 10px; text-decoration: none; color: white; 
@@ -179,7 +179,7 @@
     <div id="popup-overlay">
         <div class="popup-content">
             <div class="close-popup" onclick="closePopup()"><i class="fas fa-times"></i></div>
-            <img id="popup-img" src="" alt="Promo">
+            <img id="popup-img" src="" alt="Promo" onerror="this.parentElement.parentElement.style.display='none'">
         </div>
     </div>
 
@@ -188,7 +188,7 @@
 
         <header class="header-bar">
             <div class="brand">
-                <img id="nav-logo" src="https://i.ibb.co.com/cXDPgvXR/20260219-214636.png" alt="Logo">
+                <img id="nav-logo" src="https://i.ibb.co.com/cXDPgvXR/20260219-214636.png" alt="Logo" onerror="this.src='https://via.placeholder.com/40'">
                 <span class="brand-name">WARUNG 757</span>
             </div>
             <div class="btn-menu" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
@@ -264,7 +264,7 @@
                     <div class="footer-flex">
                         <div class="footer-info">
                             <div class="footer-logo-text">
-                                <img id="footer-logo" src="https://i.ibb.co.com/cXDPgvXR/20260219-214636.png" alt="Warung 757">
+                                <img id="footer-logo" src="https://i.ibb.co.com/cXDPgvXR/20260219-214636.png" alt="Warung 757" onerror="this.src='https://via.placeholder.com/40'">
                                 <h2>WARUNG 757</h2>
                             </div>
                             <p class="footer-desc">Warung 757 adalah pusat Top Up & kebutuhan Gaming terpercaya. Aman, murah, dan proses manual yang terjaga kualitasnya.</p>
@@ -315,7 +315,15 @@
         window.openReport = () => { closeAll(); document.getElementById('modalReport').classList.add('active'); document.getElementById('overlay').style.display = 'block'; };
         window.closeReport = () => closeAll();
 
-        function cleanUrl(u) { return (u && !u.includes('undefined')) ? (u.includes('img src=') ? u.split('src="')[1].split('"')[0] : u) : null; }
+        // PERBAIKAN: Fungsi pembersihan URL yang lebih kuat
+        function cleanUrl(u) { 
+            if (!u || u === 'undefined' || u === '') return 'https://via.placeholder.com/300x300?text=No+Image';
+            if (typeof u === 'string' && u.includes('<img')) {
+                const match = u.match(/src=["']([^"']+)["']/);
+                return match ? match[1] : u;
+            }
+            return u; 
+        }
 
         let allCategories = {};
 
@@ -332,7 +340,6 @@
                 grid.style.display = 'grid'; gridTitle.style.display = 'block'; stockSec.style.display = 'block';
                 renderCategories(allCategories);
             } else if (type === 'lainnya') {
-                // Menampilkan item yang tipenya kosong, undefined, atau memang diset 'lainnya'
                 stockSec.style.display = 'none'; grid.style.display = 'grid'; gridTitle.style.display = 'block';
                 const filtered = Object.keys(allCategories).filter(key => {
                     const t = (allCategories[key].type || '').toLowerCase();
@@ -346,22 +353,20 @@
             }
         };
 
-        // PERBAIKAN: Fungsi Render yang sinkron dengan Admin (cek status 'closed')
         function renderCategories(catData) {
             const list = document.getElementById('category-display-list');
             list.innerHTML = Object.keys(catData).map(k => {
                 const c = catData[k];
-                // Admin kirim 'closed', Index harus cek 'closed' (huruf kecil)
                 const isOpen = c.status !== 'closed'; 
                 const statusClass = isOpen ? '' : 'closed';
                 const statusText = isOpen ? 'OPEN' : 'CLOSED';
                 const badgeClass = isOpen ? 'status-open' : 'status-closed';
-                
+
                 return `
                     <a href="${isOpen ? (c.link || '#') : 'javascript:void(0)'}" class="category-card-medium ${statusClass}">
                         <div class="cat-status-label ${badgeClass}">${statusText}</div>
                         <div class="cat-img-box-large">
-                            <img src="${cleanUrl(c.image)}" class="cat-game-img">
+                            <img src="${cleanUrl(c.image)}" onerror="this.src='https://via.placeholder.com/150?text=Error'" class="cat-game-img">
                         </div>
                         <span class="cat-name-bold">${c.name.toUpperCase()}</span>
                     </a>`;
@@ -372,22 +377,24 @@
             const data = snap.val();
             if(!data) return;
 
-            // Update Identitas
             if(data.logo_url) {
-                document.getElementById('nav-logo').src = data.logo_url;
-                document.getElementById('footer-logo').src = data.logo_url;
+                const lUrl = cleanUrl(data.logo_url);
+                document.getElementById('nav-logo').src = lUrl;
+                document.getElementById('footer-logo').src = lUrl;
             }
 
-            // PERBAIKAN: Pemanggilan announcement dari Admin
             if(data.announcements) {
                 document.getElementById('announcement-text-display').innerText = data.announcements;
             }
 
             const pUrl = cleanUrl(data.popup_banner);
-            if(pUrl) { document.getElementById('popup-img').src = pUrl; document.getElementById('popup-overlay').style.display = 'flex'; }
-            
+            if(pUrl && pUrl.length > 20) { 
+                document.getElementById('popup-img').src = pUrl; 
+                document.getElementById('popup-overlay').style.display = 'flex'; 
+            }
+
             if(data.banners) {
-                document.getElementById('banner-display-list').innerHTML = data.banners.map(u => `<div class="swiper-slide"><img src="${cleanUrl(u)}"></div>`).join('');
+                document.getElementById('banner-display-list').innerHTML = data.banners.map(u => `<div class="swiper-slide"><img src="${cleanUrl(u)}" onerror="this.src='https://via.placeholder.com/800x400?text=Banner+Mati'"></div>`).join('');
                 new Swiper(".swiper-banner", { loop: true, pagination: { el: ".swiper-pagination" }, autoplay: { delay: 3000 } });
             }
 
@@ -409,7 +416,7 @@
                 document.getElementById('stock-display-list').innerHTML = Object.keys(data.account_stocks).map(k => {
                     const i = data.account_stocks[k];
                     const ready = i.qty > 0;
-                    return `<div class="swiper-slide"><div class="stock-card" onclick="${ready ? `location.href='checkout-akun.html?id=${k}'` : ''}"><div class="stock-status-badge ${ready?'status-ready':'status-sold'}">${ready?'READY':'SOLD'}</div><div class="stock-img-box"><img src="${cleanUrl(i.image)}"></div><div class="stock-details"><h4>${i.title}</h4><div style="display:flex; justify-content:space-between; align-items:center;"><span style="color:var(--gold-light); font-weight:800; font-size:0.8rem;">Rp ${i.price.toLocaleString()}</span></div></div></div></div>`;
+                    return `<div class="swiper-slide"><div class="stock-card" onclick="${ready ? `location.href='checkout-akun.html?id=${k}'` : ''}"><div class="stock-status-badge ${ready?'status-ready':'status-sold'}">${ready?'READY':'SOLD'}</div><div class="stock-img-box"><img src="${cleanUrl(i.image)}" onerror="this.src='https://via.placeholder.com/300?text=No+Image'"></div><div class="stock-details"><h4>${i.title}</h4><div style="display:flex; justify-content:space-between; align-items:center;"><span style="color:var(--gold-light); font-weight:800; font-size:0.8rem;">Rp ${i.price.toLocaleString()}</span></div></div></div></div>`;
                 }).join('');
                 new Swiper(".stock-swiper", { slidesPerView: 1.6, spaceBetween: 15, breakpoints: { 768: { slidesPerView: 4 } } });
             }
