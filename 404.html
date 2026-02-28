@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Halaman Tidak Ditemukan | Warung 757</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@700;800&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --dark-blue: #0a0e27;
+            --royal-blue: #16215b;
+            --gold: #d4af37;
+            --gold-light: #f1d592;
+            --white: #ffffff;
+        }
+
+        body {
+            background: var(--dark-blue);
+            background-image: radial-gradient(circle at center, #16215b 0%, #0a0e27 100%);
+            color: var(--white);
+            font-family: 'Poppins', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .error-container {
+            padding: 20px;
+            z-index: 2;
+        }
+
+        .error-code {
+            font-family: 'Lexend', sans-serif;
+            font-size: clamp(8rem, 20vw, 12rem);
+            font-weight: 800;
+            line-height: 1;
+            background: linear-gradient(to bottom, var(--gold-light), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.3));
+            margin-bottom: 10px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .error-msg {
+            font-family: 'Lexend', sans-serif;
+            font-size: 1.5rem;
+            color: var(--gold-light);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .error-desc {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            max-width: 400px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
+
+        .btn-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--gold);
+            color: var(--dark-blue);
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-family: 'Lexend', sans-serif;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+        }
+
+        .btn-home:hover {
+            transform: scale(1.05);
+            background: var(--gold-light);
+            box-shadow: 0 15px 25px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Background Decoration */
+        .bg-icon {
+            position: absolute;
+            color: rgba(212, 175, 55, 0.03);
+            z-index: 1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <i class="fas fa-ghost bg-icon" style="font-size: 10rem; top: 10%; left: 10%; transform: rotate(-20deg);"></i>
+    <i class="fas fa-gamepad bg-icon" style="font-size: 8rem; bottom: 15%; right: 10%; transform: rotate(15deg);"></i>
+    <i class="fas fa-robot bg-icon" style="font-size: 5rem; top: 20%; right: 20%;"></i>
+
+    <div class="error-container">
+        <div class="error-code">404</div>
+        <h1 class="error-msg">Ops! Nyasar?</h1>
+        <p class="error-desc">
+            Halaman yang kamu cari tidak ditemukan atau mungkin sudah dipindahkan ke dimensi lain. Jangan khawatir, yuk balik ke store!
+        </p>
+        <a href="index.html" class="btn-home">
+            <i class="fas fa-home"></i> KEMBALI KE BERANDA
+        </a>
+    </div>
+
+    <script>
+        // Sedikit efek interaktif mengikuti mouse (opsional)
+        document.addEventListener('mousemove', (e) => {
+            const icons = document.querySelectorAll('.bg-icon');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            icons.forEach(icon => {
+                icon.style.transform = `translate(${x * 30}px, ${y * 30}px) rotate(${x * 10}deg)`;
+            });
+        });
+    </script>
+</body>
+</html>
