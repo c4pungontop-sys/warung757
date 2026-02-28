@@ -256,7 +256,10 @@
                         list.innerHTML += `
                         <div class="product-card">
                             <div class="product-info" style="font-size:0.7rem;">${text}</div>
-                            <button class="btn-action btn-danger" onclick="deleteAnnouncement(${i})"><i class="fas fa-trash"></i></button>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-action" onclick="editAnnouncement(${i}, '${text.replace(/'/g, "\\'")}')"><i class="fas fa-edit"></i></button>
+                                <button class="btn-action btn-danger" onclick="deleteAnnouncement(${i})"><i class="fas fa-trash"></i></button>
+                            </div>
                         </div>`;
                     });
                 }
@@ -274,7 +277,8 @@
                             <b>${cat.name}</b><br>
                             <span style="font-size:0.6rem; opacity:0.6;">${cat.type}</span>
                         </div>
-                        <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <button class="btn-action" onclick="editCategory('${key}')"><i class="fas fa-edit"></i></button>
                             <label class="switch">
                                 <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleCategoryStatus('${key}', this)">
                                 <span class="slider"></span>
@@ -289,7 +293,18 @@
                 const list = document.getElementById('admin-stock-list');
                 const data = snap.val(); list.innerHTML = "";
                 if(data) Object.keys(data).forEach(key => {
-                    list.innerHTML += `<div class="product-card"><div class="product-info"><b>${data[key].title}</b> (Stok: ${data[key].qty})</div><button class="btn-action btn-danger" onclick="deleteMasterData('account_stocks/${key}')"><i class="fas fa-trash"></i></button></div>`;
+                    const item = data[key];
+                    list.innerHTML += `
+                    <div class="product-card">
+                        <div class="product-info">
+                            <b>${item.title}</b> (Stok: ${item.qty})<br>
+                            <span style="font-size:0.65rem;">Rp ${item.price.toLocaleString()}</span>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-action" onclick="editStock('${key}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn-action btn-danger" onclick="deleteMasterData('account_stocks/${key}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>`;
                 });
             });
 
@@ -324,7 +339,6 @@
                 window.currentRobloxData = products;
             });
 
-            // LOAD DATA DISCORD
             onValue(ref(db, 'settings/discord_prices'), (snap) => {
                 const list = document.getElementById('discord-list-admin');
                 const products = snap.val() || []; list.innerHTML = "";
@@ -562,6 +576,92 @@
                         set(ref(db, 'site_content/promos'), curr).then(() => showToast("Flash Sale Aktif!"));
                     });
                 }
+            });
+        }
+
+        // --- FUNGSI EDIT TAMBAHAN ---
+
+        window.editAnnouncement = function(index, oldText) {
+            Swal.fire({
+                title: 'Edit Pengumuman',
+                input: 'textarea',
+                inputValue: oldText,
+                background: '#0a0e27', color: '#fff',
+                showCancelButton: true,
+                confirmButtonText: 'Simpan'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    get(ref(db, 'site_content/announcements')).then(s => {
+                        let curr = s.val() || [];
+                        curr[index] = result.value;
+                        set(ref(db, 'site_content/announcements'), curr).then(() => showToast("Pengumuman Diperbarui!"));
+                    });
+                }
+            });
+        }
+
+        window.editCategory = function(key) {
+            get(ref(db, `site_content/categories/${key}`)).then(snap => {
+                const cat = snap.val();
+                Swal.fire({
+                    title: 'Edit Kategori',
+                    background: '#0a0e27', color: '#fff',
+                    html: `
+                        <input id="edit-cat-name" class="swal2-input" placeholder="Nama" value="${cat.name}">
+                        <input id="edit-cat-img" class="swal2-input" placeholder="URL Gambar" value="${cat.image}">
+                        <input id="edit-cat-link" class="swal2-input" placeholder="Link" value="${cat.link}">
+                    `,
+                    showCancelButton: true,
+                    preConfirm: () => {
+                        return {
+                            name: document.getElementById('edit-cat-name').value,
+                            image: document.getElementById('edit-cat-img').value,
+                            link: document.getElementById('edit-cat-link').value,
+                            type: cat.type,
+                            status: cat.status
+                        }
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        update(ref(db, `site_content/categories/${key}`), result.value)
+                        .then(() => showToast("Kategori Diperbarui!"));
+                    }
+                });
+            });
+        }
+
+        window.editStock = function(key) {
+            get(ref(db, `site_content/account_stocks/${key}`)).then(snap => {
+                const item = snap.val();
+                Swal.fire({
+                    title: 'Edit Stok Akun',
+                    background: '#0a0e27', color: '#fff',
+                    html: `
+                        <span class="swal-input-label">Judul Akun:</span>
+                        <input id="edit-stock-title" class="swal2-input" value="${item.title}">
+                        <span class="swal-input-label">Harga:</span>
+                        <input id="edit-stock-price" type="number" class="swal2-input" value="${item.price}">
+                        <span class="swal-input-label">Jumlah Stok:</span>
+                        <input id="edit-stock-qty" type="number" class="swal2-input" value="${item.qty}">
+                        <span class="swal-input-label">URL Gambar:</span>
+                        <input id="edit-stock-img" class="swal2-input" value="${item.image}">
+                    `,
+                    showCancelButton: true,
+                    preConfirm: () => {
+                        return {
+                            title: document.getElementById('edit-stock-title').value,
+                            price: parseInt(document.getElementById('edit-stock-price').value),
+                            qty: parseInt(document.getElementById('edit-stock-qty').value),
+                            image: document.getElementById('edit-stock-img').value,
+                            description: item.description || ""
+                        }
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        update(ref(db, `site_content/account_stocks/${key}`), result.value)
+                        .then(() => showToast("Stok Akun Diperbarui!"));
+                    }
+                });
             });
         }
 
