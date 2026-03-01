@@ -375,7 +375,7 @@
             }
         };
 
-        // --- BAGIAN YANG DIUBAH AGAR MENGGUNAKAN BOT ---
+        // --- BAGIAN INTEGRASI FIREBASE & RIWAYAT ---
         window.processDsc = async () => {
             const file = document.getElementById('file-bukti').files[0];
             if(!file) { 
@@ -391,12 +391,13 @@
                 didOpen: () => { Swal.showLoading(); } 
             });
 
-            const trxId = "DSC-" + Date.now().toString().slice(-6);
-            const now = new Date();
+            // Generate ID Unik dan Waktu
+            const trxId = "DSC-" + Math.floor(100000 + Math.random() * 900000);
+            const now = new Date().toLocaleString('id-ID');
             const waVal = document.getElementById('dsc-wa').value;
             const emailVal = document.getElementById('email-user').value;
             
-            const data = {
+            const dataOrder = {
                 id: trxId, 
                 username: document.getElementById('dsc-user').value, 
                 password: document.getElementById('dsc-pass').value,
@@ -405,39 +406,32 @@
                 product: selected.name, 
                 price: selected.price,
                 method: chosenMethod, 
-                status: "DIPROSES", 
-                date: now.toLocaleString('id-ID')
+                status: "PROSES", // Status PROSES agar dideteksi Bot Discord
+                date: now
             };
 
             try {
-                // 1. TETAP SIMPAN KE FIREBASE
-                await set(ref(db, 'transactions/' + trxId), data);
+                // 1. Simpan ke Firebase (Bot Discord akan otomatis mendeteksi)
+                await set(ref(db, 'transactions/' + trxId), dataOrder);
                 
-                // 2. TETAP SIMPAN KE LOCALSTORAGE (RIWAYAT)
+                // 2. Simpan ke LocalStorage agar muncul di riwayat-transaksi.html
                 let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
-                history.unshift(data);
+                // Kita masukkan data lengkap atau minimal ID agar terbaca oleh sistem riwayat kamu
+                history.unshift({ id: trxId }); 
                 localStorage.setItem('robloxHistory', JSON.stringify(history));
 
-                // 3. KIRIM KE BOT DISCORD (Ganti dari Webhook ke Bot API)
-                const formData = new FormData();
-                formData.append('payload_json', JSON.stringify(data));
-                formData.append('file', file);
-                
-                await fetch("http://localhost:3000/kirim-ke-bot", { 
-                    method: 'POST', 
-                    body: formData 
-                });
-
+                // 3. Tampilkan Notifikasi dan Redirect
                 document.getElementById('modalPayment').style.display = 'none';
                 Swal.close();
                 document.getElementById('pushNotif').classList.add('show');
                 
                 setTimeout(() => { 
                     window.location.href = 'riwayat-transaksi.html'; 
-                }, 2000);
+                }, 1500);
+
             } catch(e) { 
                 console.error(e);
-                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan sistem/Bot mati.' });
+                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan sistem database.', background: '#0a0e27', color: '#fff' });
             }
         };
     </script>
