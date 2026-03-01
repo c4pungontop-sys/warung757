@@ -299,15 +299,16 @@
             reader.onload = async () => {
                 const trxId = "ZEP-" + Date.now().toString().slice(-6);
                 
-                // --- DATA LENGKAP TERMASUK EMAIL ---
+                // MENGUBAH DAN MENGGABUNGKAN DATA UNTUK DISCORD
                 const data = {
                     id: trxId,
                     product: "ZEPETO - " + window.selectedProduct.name,
                     price: window.selectedProduct.price,
-                    username_email: document.getElementById('idz-user').value,
-                    password_akun: document.getElementById('nama-zepeto').value,
-                    email_user: document.getElementById('email-user').value, // Email dimasukkan kesini mas
-                    wa_pembeli: "62" + document.getElementById('wa-user').value,
+                    // Penamaan field disesuaikan agar tidak ngaco di bot
+                    id_zepeto: document.getElementById('idz-user').value,
+                    nama_akun_zepeto: document.getElementById('nama-zepeto').value,
+                    // Menggabungkan Email dan WA jadi satu baris
+                    kontak_pembeli: document.getElementById('email-user').value + " | 62" + document.getElementById('wa-user').value,
                     metode: window.chosenMethod,
                     status: "PROSES", 
                     date: new Date().toLocaleString('id-ID'),
