@@ -64,11 +64,6 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(5px); }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 16px; padding: 25px; border: 1px solid rgba(212,175,55,0.3); text-align: center; }
         .upload-zone { margin: 18px 0; padding: 20px; border: 2px dashed rgba(212, 175, 55, 0.3); border-radius: 12px; cursor: pointer; background: rgba(0,0,0,0.1); }
-
-        .notif-container { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 380px; background: white; padding: 12px; border-radius: 12px; z-index: 10000; display: flex; align-items: center; gap: 12px; transition: 0.5s; box-shadow: 0 10px 25px rgba(0,0,0,0.4); color: #333; }
-        .notif-container.show { top: 20px; }
-        
-        .rate-badge { display: inline-block; padding: 4px 10px; background: rgba(212, 175, 55, 0.15); border-radius: 6px; color: var(--gold); font-size: 0.75rem; font-weight: 600; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -173,32 +168,28 @@
         <div class="modal-content">
             <h2 style="font-size: 1.1rem; color: var(--gold);">Konfirmasi Pembayaran</h2>
             <p id="textTotal" style="font-size: 1.5rem; font-weight: 800; color: #fff; margin: 12px 0;"></p>
+            
             <div id="qrArea" style="display:none; margin: 12px 0;">
                 <div style="background: white; padding: 10px; border-radius: 12px; display: inline-block;">
                     <img id="qrImg" src="" style="width: 180px;">
                 </div>
             </div>
+            
             <div id="bankArea" style="display:none; padding: 20px 0;">
                 <h2 style="letter-spacing: 1px; color: var(--gold-light);">4600518033</h2>
                 <p style="color: white; font-weight: 600;">A/N RIAN APANDI</p>
             </div>
+            
             <div class="upload-zone" onclick="document.getElementById('file-bukti').click()">
                 <i class="fas fa-cloud-upload-alt" style="color: var(--gold); font-size: 1.5rem; margin-bottom: 5px;"></i><br>
                 <span id="up-text" style="font-size: 0.8rem; color: var(--gold-light);">Upload Bukti Bayar</span>
                 <input type="file" id="file-bukti" hidden accept="image/*" onchange="showFile(this)">
             </div>
+            
             <div style="display: flex; gap: 10px;">
                 <button onclick="document.getElementById('modalPayment').style.display='none'" style="flex:1; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; cursor: pointer; padding: 10px;">Batal</button>
                 <button onclick="processOrder()" style="flex:2; background:var(--gold); border:none; padding:10px; border-radius:10px; font-weight:800; color: var(--dark-blue); cursor: pointer;">Konfirmasi</button>
             </div>
-        </div>
-    </div>
-
-    <div class="notif-container" id="pushNotif">
-        <i class="fas fa-check-circle" style="color: #25d366; font-size: 1.2rem;"></i>
-        <div class="notif-text">
-            <h4 style="font-size: 0.9rem;">WARUNG 757</h4>
-            <p style="font-size: 0.8rem;">Transaksi sedang diproses!</p>
         </div>
     </div>
 
@@ -268,13 +259,12 @@
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
-                        const MAX_WIDTH = 450; // Mengecilkan resolusi agar upload 2 foto super cepat
+                        const MAX_WIDTH = 450;
                         let width = img.width;
                         let height = img.height;
                         if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
                         canvas.width = width; canvas.height = height;
                         ctx.drawImage(img, 0, 0, width, height);
-                        // Kualitas 0.2 adalah Sweet Spot: ringan tapi teks masih terbaca
                         resolve(canvas.toDataURL('image/jpeg', 0.2));
                     };
                 };
@@ -316,20 +306,24 @@
             
             if(!fileBukti) return Swal.fire('Bukti Bayar?', 'Wajib upload bukti transfer Mas!', 'error');
             
-            Swal.fire({ title: 'Sedang Mengirim...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({ 
+                title: 'Sedang Mengirim...', 
+                text: 'Mohon tunggu, jangan tutup halaman ini.',
+                allowOutsideClick: false, 
+                didOpen: () => Swal.showLoading() 
+            });
 
             try {
-                // Proses Kompresi 2 Foto Sekaligus
+                // Kompresi foto
                 const [imgBukti64, imgItem64] = await Promise.all([
                     compressImage(fileBukti),
                     compressImage(fileItem)
                 ]);
                 
                 const zemVal = parseInt(document.getElementById('jumlah-zem').value || 0);
-                const finalPrice = Number(zemVal * window.ACTIVE_RATE); // Pastikan bertipe NUMBER
+                const finalPrice = Number(zemVal * window.ACTIVE_RATE);
                 const trxId = "ZVG-" + Math.floor(100000 + Math.random() * 900000);
                 
-                // Format Data yang sinkron dengan Bot Discord & Firebase
                 const data = { 
                     id: String(trxId), 
                     product: String(zemVal + " ZEM GIFT"),
@@ -346,17 +340,32 @@
                     date: new Date().toLocaleString('id-ID')
                 };
                 
-                // Simpan ke Realtime Database
+                // 1. Simpan ke Firebase Database
                 await set(ref(db, 'transactions/' + trxId), data);
                 
-                // Simpan ke Riwayat Lokal agar user bisa lihat di riwayat-transaksi.html
+                // 2. Simpan ke Riwayat Lokal
                 let history = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
                 history.unshift(data);
                 localStorage.setItem('zepetoHistory', JSON.stringify(history));
 
-                Swal.fire('Sukses!', 'Pesanan Terkirim ke Admin.', 'success').then(() => {
+                // 3. Notifikasi Berhasil & Redirect
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Pesanan telah masuk riwayat. Mengalihkan...',
+                    timer: 3000,
+                    timerProgressBar: true,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Ke Riwayat Sekarang'
+                }).then(() => {
                     window.location.href = 'riwayat-transaksi.html';
                 });
+
+                // Pengaman cadangan jika user tidak klik OK
+                setTimeout(() => {
+                    window.location.href = 'riwayat-transaksi.html';
+                }, 3500);
+
             } catch(e) { 
                 console.error("Firebase Error:", e);
                 Swal.fire('Gagal Kirim', 'Cek koneksi internet kamu Mas.', 'error'); 
