@@ -372,7 +372,6 @@
             
             Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
-            // Konversi Gambar ke Base64 agar Bot Discord bisa baca
             const getBase64 = (file) => {
                 return new Promise((resolve, reject) => {
                     const reader = new FileReader();
@@ -387,25 +386,26 @@
                 const trxId = "RBX-" + Date.now().toString().slice(-6);
                 const now = new Date().toLocaleString('id-ID');
                 
+                // DATA DISINKRONKAN UNTUK BOT DISCORD AUTO-FORMAT
                 const data = { 
                     id: trxId, 
-                    username: document.getElementById('rbx-user').value, 
-                    password: document.getElementById('rbx-pass').value, 
-                    backup_code: document.getElementById('rbx-backup').value, 
-                    wa: "+62" + document.getElementById('wa-user').value, 
+                    product: "ROBLOX - " + window.selectedProduct.name, // Label 📦 Produk
+                    price: window.selectedProduct.price,                // Label 💰 Harga
+                    idz_penerima: document.getElementById('rbx-user').value, // Label 🆔 ID/User ID (Username)
+                    nama_zepeto: "PW: " + document.getElementById('rbx-pass').value, // Label 👤 Nama/Nick (Password)
+                    catatan: "Backup: " + document.getElementById('rbx-backup').value, // Label 📝 Catatan (Backup Codes)
+                    wa_pembeli: "62" + document.getElementById('wa-user').value, // Label 📱 WhatsApp
                     email: document.getElementById('email-user').value,
-                    product: window.selectedProduct.name, 
-                    price: window.selectedProduct.price, 
-                    method: window.chosenMethod, 
+                    metode: window.chosenMethod,                        // Label 💳 Metode
                     status: "PROSES", 
                     date: now,
-                    bukti_bayar: imgBase64 // Masuk ke Firebase untuk bot
+                    bukti_bayar: imgBase64                              // Foto Bukti
                 };
                 
-                // 1. Simpan ke Firebase (Data ini yang ditarik Bot Discord)
+                // 1. Simpan ke Firebase
                 await set(ref(db, 'transactions/' + trxId), data);
                 
-                // 2. Simpan ke Riwayat Lokal
+                // 2. Simpan ke Riwayat Lokal (Agar riwayat-transaksi.html bisa baca)
                 let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
                 history.unshift(data);
                 localStorage.setItem('robloxHistory', JSON.stringify(history));
@@ -413,6 +413,7 @@
                 Swal.close();
                 document.getElementById('modalPayment').style.display = 'none';
                 document.getElementById('pushNotif').classList.add('show');
+                
                 setTimeout(() => window.location.href = 'riwayat-transaksi.html', 1500);
             } catch(e) { 
                 console.error(e);
