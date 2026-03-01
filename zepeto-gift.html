@@ -288,8 +288,10 @@
 
         function triggerShake(id) {
             const el = document.getElementById(id);
-            el.classList.add('shake-error');
-            setTimeout(() => el.classList.remove('shake-error'), 400);
+            if(el) {
+                el.classList.add('shake-error');
+                setTimeout(() => el.classList.remove('shake-error'), 400);
+            }
         }
 
         window.previewItemPhoto = (input) => {
@@ -303,7 +305,7 @@
 
         window.calculatePrice = () => {
             const jumlah = document.getElementById('jumlah-zem').value;
-            window.currentTotalPrice = jumlah * window.ACTIVE_RATE;
+            window.currentTotalPrice = (jumlah || 0) * window.ACTIVE_RATE;
             const pStr = "Rp " + window.currentTotalPrice.toLocaleString('id-ID');
             
             document.getElementById('p-qris').innerText = pStr;
@@ -357,69 +359,104 @@
             }
         };
 
+        // FUNGSI KOMPRESI GAMBAR (PENTING AGAR TIDAK ERROR GAGAL SISTEM)
+        const compressImage = (file) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 600; // Kecilkan ukuran maksimal lebar ke 600px
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Konversi ke Base64 dengan kualitas 0.6 (60%)
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
+                    };
+                };
+            });
+        };
+
         window.processOrder = async () => {
             const fileBukti = document.getElementById('file-bukti').files[0];
             const fileItem = document.getElementById('item-photo').files[0];
             if(!fileBukti) return triggerShake('up-zone');
 
-            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, background: '#0a0e27', color: '#fff', didOpen: () => Swal.showLoading() });
-
-            // Fungsi konversi gambar ke Base64
-            const getBase64 = (file) => {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = error => reject(error);
-                });
-            };
+            Swal.fire({ 
+                title: 'Sedang Memproses...', 
+                text: 'Mohon jangan tutup halaman ini.',
+                allowOutsideClick: false, 
+                background: '#0a0e27', 
+                color: '#fff', 
+                didOpen: () => Swal.showLoading() 
+            });
 
             try {
-                const imgBukti64 = await getBase64(fileBukti);
-                const imgItem64 = await getBase64(fileItem);
+                // Proses kompresi kedua gambar
+                const imgBukti64 = await compressImage(fileBukti);
+                const imgItem64 = await compressImage(fileItem);
                 
-                const trxId = "ZVG-" + Date.now().toString().slice(-6);
+                const trxId = "ZVG-" + Math.floor(100000 + Math.random() * 900000);
                 const now = new Date();
-                const idz = document.getElementById('idz-user').value;
-                const nickname = document.getElementById('name-user').value;
-                const jumlahZem = document.getElementById('jumlah-zem').value;
-                const waNum = document.getElementById('wa-confirm').value;
-
+                
                 const data = {
                     id: trxId,
-                    type: "ZEPETO_GIFT", // Penanda untuk Bot Discord
-                    idz: idz,
-                    nickname: nickname,
-                    email_confirm: document.getElementById('email-confirm').value,
-                    wa: "+62" + waNum, // Key disesuaikan 'wa' agar terbaca bot
-                    product: jumlahZem + " ZEM GIFT",
-                    catatan: document.getElementById('catatan-item').value,
-                    price: "Rp " + window.currentTotalPrice.toLocaleString('id-ID'),
-                    method: window.chosenMethod,
+                    type: "ZEPETO_GIFT",
+                    idz: document.getElementById('idz-user').value || "-",
+                    nickname: document.getElementById('name-user').value || "-",
+                    email_confirm: document.getElementById('email-confirm').value || "-",
+                    wa: "+62" + document.getElementById('wa-confirm').value,
+                    product: (document.getElementById('jumlah-zem').value || "0") + " ZEM GIFT",
+                    catatan: document.getElementById('catatan-item').value || "-",
+                    price: document.getElementById('footerPrice').innerText,
+                    method: window.chosenMethod || "Manual",
                     status: "PROSES",
                     date: now.toLocaleString('id-ID'),
-                    bukti_bayar: imgBukti64, // Gambar utama (Bukti Transfer)
-                    foto_item: imgItem64 // Gambar tambahan (Request Item)
+                    bukti_bayar: imgBukti64,
+                    foto_item: imgItem64
                 };
 
-                // Simpan ke Firebase (Bot akan mendeteksi penambahan child baru)
+                // Kirim ke Firebase
                 await set(ref(db, 'transactions/' + trxId), data);
 
                 // Update Riwayat Lokal
                 let history = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
                 history.unshift({
-                    id: trxId, product: data.product, idz: idz, 
+                    id: trxId, product: data.product, 
                     price: data.price, status: "PROSES", date: data.date
                 });
-                localStorage.setItem('zepetoHistory', JSON.stringify(history));
+                localStorage.setItem('zepetoHistory', JSON.stringify(history.slice(0, 10)));
 
                 Swal.close();
                 document.getElementById('modalPayment').style.display = 'none';
                 document.getElementById('pushNotif').classList.add('show');
-                setTimeout(() => location.href = 'riwayat-transaksi.html', 2000);
+                
+                setTimeout(() => {
+                    window.location.href = 'riwayat-transaksi.html';
+                }, 2000);
+
             } catch(e) {
-                console.error(e);
-                Swal.fire('Gagal', 'Terjadi kesalahan sistem.', 'error');
+                console.error("Error Detail:", e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Sistem Error',
+                    text: 'Gagal mengirim data. Pastikan koneksi stabil.',
+                    background: '#0a0e27',
+                    color: '#fff'
+                });
             }
         };
     </script>
