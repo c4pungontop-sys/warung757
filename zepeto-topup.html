@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* CSS TETAP KONSISTEN */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --dark-blue: #0a0e27;
@@ -130,8 +131,16 @@
                     <div class="step-num">4</div>
                     <h3>Konfirmasi Kontak</h3>
                 </div>
-                <input type="number" id="wa-confirm" class="input-box" placeholder="Contoh: 8123456xxx">
-                <p style="font-size: 0.7rem; color: var(--gold); margin-bottom: 15px; font-style: italic;">**Nomor ini akan digunakan untuk konfirmasi transaksi</p>
+                <label style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">Nomor WhatsApp</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <div style="background: #0a0e27; border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 10px; padding: 0 12px; display: flex; align-items: center; gap: 6px;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_Indonesia.svg" style="width: 18px;">
+                        <span style="font-size: 0.9rem;">+62</span>
+                    </div>
+                    <input type="number" id="wa-user" class="input-box" placeholder="8123456xxx" style="margin-bottom: 0; flex: 1;">
+                </div>
+                <label style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">Alamat Email</label>
+                <input type="email" id="email-user" class="input-box" placeholder="nama@email.com">
             </div>
         </div>
     </div>
@@ -146,7 +155,7 @@
 
     <div class="modal-overlay" id="modalPayment">
         <div class="modal-content">
-            <h2 style="font-size: 1.1rem; color: var(--gold); font-weight: 700;">Konfirmasi Pembayaran</h2>
+            <h2 style="font-size: 1.1rem; color: var(--gold);">Konfirmasi Pembayaran</h2>
             <p id="textTotal" style="font-size: 1.5rem; font-weight: 800; color: #fff; margin: 12px 0;"></p>
             <div id="qrArea" style="display:none; margin: 12px 0;">
                 <div style="background: white; padding: 10px; border-radius: 12px; display: inline-block;">
@@ -154,17 +163,17 @@
                 </div>
             </div>
             <div id="bankArea" style="display:none; padding: 20px 0;">
-                <h2 style="letter-spacing: 1px; color: var(--gold-light); font-size: 1.4rem;">4600518033</h2>
-                <p style="font-size: 0.9rem; font-weight: 500; opacity: 0.8;">A/N RIAN APANDI</p>
+                <h2 style="letter-spacing: 1px; color: var(--gold-light);">4600518033</h2>
+                <p style="color: white; font-weight: 600;">A/N RIAN APANDI</p>
             </div>
             <div class="upload-zone" id="up-zone" onclick="document.getElementById('file-bukti').click()">
-                <i class="fas fa-cloud-upload-alt" style="font-size: 1.8rem; color: var(--gold); margin-bottom: 8px;"></i><br>
-                <span id="up-text" style="font-size: 0.8rem; color: var(--gold-light); font-weight: 600;">Upload Bukti Bayar</span>
+                <i class="fas fa-cloud-upload-alt" style="color: var(--gold); font-size: 1.5rem; margin-bottom: 5px;"></i><br>
+                <span id="up-text" style="font-size: 0.8rem; color: var(--gold-light);">Upload Bukti Bayar</span>
                 <input type="file" id="file-bukti" hidden accept="image/*" onchange="showFile(this)">
             </div>
             <div style="display: flex; gap: 10px;">
-                <button onclick="document.getElementById('modalPayment').style.display='none'" style="flex:1; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:white; font-size: 0.9rem;">Batal</button>
-                <button id="btn-final" onclick="processOrder()" style="flex:2; padding:12px; border-radius:10px; background:var(--gold); border:none; font-weight: 700; color:var(--dark-blue); font-size: 0.9rem;">Konfirmasi</button>
+                <button onclick="document.getElementById('modalPayment').style.display='none'" style="flex:1; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px;">Batal</button>
+                <button onclick="processOrder()" style="flex:2; background:var(--gold); border:none; padding:10px; border-radius:10px; font-weight:800; color: var(--dark-blue);">Konfirmasi</button>
             </div>
         </div>
     </div>
@@ -195,13 +204,11 @@
         window.selectedProduct = null;
         window.chosenMethod = null;
 
-        // Mendengarkan perubahan harga
         onValue(ref(db, 'settings/zepeto_prices'), (snap) => {
             zepetoProducts = snap.val() || [];
             renderProducts();
         });
 
-        // Mendengarkan perubahan Flash Sale
         onValue(ref(db, 'site_content/promos'), (promoSnap) => {
             const data = promoSnap.val();
             flashSaleData = data ? Object.values(data) : [];
@@ -266,7 +273,7 @@
         window.openPayment = () => {
             const idz = document.getElementById('idz-user').value;
             const nama = document.getElementById('nama-zepeto').value;
-            const wa = document.getElementById('wa-confirm').value;
+            const wa = document.getElementById('wa-user').value;
 
             if(!idz || !nama) return triggerShake('card-step-1');
             if(!window.selectedProduct) return triggerShake('card-step-2');
@@ -289,12 +296,7 @@
             }
         };
 
-        window.showFile = (input) => {
-            if(input.files[0]) {
-                document.getElementById('up-text').innerText = "✓ Bukti Dipilih";
-                document.getElementById('up-zone').style.borderColor = "#00ff88";
-            }
-        };
+        window.showFile = (input) => { if(input.files[0]) document.getElementById('up-text').innerText = "✓ Gambar Terpilih"; };
 
         window.processOrder = async () => {
             const fileBukti = document.getElementById('file-bukti').files[0];
@@ -302,46 +304,44 @@
 
             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, background: '#0a0e27', color: '#fff', didOpen: () => Swal.showLoading() });
 
-            const trxId = "ZEP-" + Date.now().toString().slice(-6);
-            const now = new Date();
-            const idz = document.getElementById('idz-user').value;
-            const nama = document.getElementById('nama-zepeto').value;
-            const waNum = document.getElementById('wa-confirm').value;
+            const reader = new FileReader();
+            reader.readAsDataURL(fileBukti);
+            reader.onload = async () => {
+                const trxId = "ZEP-" + Date.now().toString().slice(-6);
+                const idz = document.getElementById('idz-user').value;
+                const nama = document.getElementById('nama-zepeto').value;
+                const waNum = document.getElementById('wa-user').value;
 
-            const data = {
-                id: trxId,
-                idz: idz,
-                nama_zepeto: nama,
-                whatsapp: "+62" + waNum,
-                product: window.selectedProduct.name,
-                price: window.selectedProduct.price,
-                method: window.chosenMethod,
-                status: "DIPROSES",
-                date: now.toLocaleString('id-ID'),
-                timestamp: now.getTime()
+                const data = {
+                    id: trxId,
+                    idz: idz,
+                    nama_zepeto: nama,
+                    whatsapp: "+62" + waNum,
+                    email_user: document.getElementById('email-user').value,
+                    product: window.selectedProduct.name,
+                    price: window.selectedProduct.price,
+                    method: window.chosenMethod,
+                    status: "DIPROSES",
+                    date: new Date().toLocaleString('id-ID'),
+                    timestamp: Date.now(),
+                    bukti_bayar: reader.result
+                };
+
+                try {
+                    await set(ref(db, 'transactions/' + trxId), data);
+
+                    let history = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
+                    history.unshift(data);
+                    localStorage.setItem('zepetoHistory', JSON.stringify(history));
+
+                    Swal.close();
+                    document.getElementById('modalPayment').style.display = 'none';
+                    document.getElementById('pushNotif').classList.add('show');
+                    setTimeout(() => location.href = 'riwayat-transaksi.html', 2000);
+                } catch(e) {
+                    Swal.fire('Gagal', 'Terjadi kesalahan sistem.', 'error');
+                }
             };
-
-            try {
-                // Simpan ke Firebase
-                await set(ref(db, 'transactions/' + trxId), data);
-
-                // Simpan ke Riwayat Lokal (LocalStorage)
-                let history = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
-                history.unshift({
-                    id: trxId, product: data.product, idz: idz, 
-                    price: data.price, status: "DIPROSES", date: data.date
-                });
-                localStorage.setItem('zepetoHistory', JSON.stringify(history));
-
-                Swal.close();
-                document.getElementById('modalPayment').style.display = 'none';
-                document.getElementById('pushNotif').classList.add('show');
-                
-                // Beri waktu 2 detik sebelum pindah halaman
-                setTimeout(() => location.href = 'riwayat-transaksi.html', 2000);
-            } catch(e) {
-                Swal.fire('Gagal', 'Terjadi kesalahan sistem.', 'error');
-            }
         };
     </script>
     <script src="script.js"></script>
