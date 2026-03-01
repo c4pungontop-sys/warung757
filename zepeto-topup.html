@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* CSS TETAP KONSISTEN SESUAI DESIGN WARUNG 757 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --dark-blue: #0a0e27;
@@ -137,6 +136,8 @@
                     </div>
                     <input type="number" id="wa-user" class="input-box" placeholder="8123456xxx" style="margin-bottom: 0; flex: 1;">
                 </div>
+                <label style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">Alamat Email</label>
+                <input type="email" id="email-user" class="input-box" placeholder="nama@email.com">
             </div>
         </div>
     </div>
@@ -262,11 +263,12 @@
             const idz = document.getElementById('idz-user').value;
             const nama = document.getElementById('nama-zepeto').value;
             const wa = document.getElementById('wa-user').value;
+            const email = document.getElementById('email-user').value;
 
             if(!idz || !nama) return triggerShake('card-step-1');
             if(!window.selectedProduct) return triggerShake('card-step-2');
             if(!window.chosenMethod) return triggerShake('card-step-3');
-            if(!wa) return triggerShake('card-step-4');
+            if(!wa || !email) return triggerShake('card-step-4');
 
             document.getElementById('textTotal').innerText = "Rp " + parseInt(window.selectedProduct.price).toLocaleString('id-ID');
             document.getElementById('modalPayment').style.display = 'flex';
@@ -297,25 +299,24 @@
             reader.onload = async () => {
                 const trxId = "ZEP-" + Date.now().toString().slice(-6);
                 
-                // --- FORMAT MURNI ZEPETO UNTUK BOT DISCORD ---
+                // --- DATA LENGKAP TERMASUK EMAIL ---
                 const data = {
                     id: trxId,
                     product: "ZEPETO - " + window.selectedProduct.name,
                     price: window.selectedProduct.price,
-                    username_email: document.getElementById('idz-user').value, // Masuk ke Label USERNAME
-                    password_akun: document.getElementById('nama-zepeto').value, // Masuk ke Label PASSWORD (tapi isinya Nama Akun)
+                    username_email: document.getElementById('idz-user').value,
+                    password_akun: document.getElementById('nama-zepeto').value,
+                    email_user: document.getElementById('email-user').value, // Email dimasukkan kesini mas
                     wa_pembeli: "62" + document.getElementById('wa-user').value,
                     metode: window.chosenMethod,
                     status: "PROSES", 
                     date: new Date().toLocaleString('id-ID'),
                     bukti_bayar: reader.result
-                    // Backup Codes dihapus agar tidak muncul di Discord
                 };
 
                 try {
                     await set(ref(db, 'transactions/' + trxId), data);
 
-                    // History lokal
                     let history = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
                     history.unshift({ ...data, timestamp: Date.now() });
                     localStorage.setItem('zepetoHistory', JSON.stringify(history));
