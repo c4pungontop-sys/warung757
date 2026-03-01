@@ -64,6 +64,7 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(5px); }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 16px; padding: 25px; border: 1px solid rgba(212,175,55,0.3); text-align: center; }
         .upload-zone { margin: 18px 0; padding: 20px; border: 2px dashed rgba(212, 175, 55, 0.3); border-radius: 12px; cursor: pointer; background: rgba(0,0,0,0.1); }
+        .rate-badge { font-size: 0.8rem; color: var(--gold); font-weight: bold; background: rgba(212, 175, 55, 0.1); padding: 5px 10px; border-radius: 5px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -206,12 +207,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Global variables
         window.ACTIVE_RATE = 450;
         window.currentTotalPrice = 0;
         window.chosenMethod = null;
 
-        // Mendengarkan perubahan Rate secara Realtime
         onValue(ref(db, 'settings/zvg_rate'), (snap) => {
             const rate = snap.val();
             if(rate) {
@@ -314,7 +313,6 @@
             });
 
             try {
-                // Kompresi foto
                 const [imgBukti64, imgItem64] = await Promise.all([
                     compressImage(fileBukti),
                     compressImage(fileItem)
@@ -324,47 +322,38 @@
                 const finalPrice = Number(zemVal * window.ACTIVE_RATE);
                 const trxId = "ZVG-" + Math.floor(100000 + Math.random() * 900000);
                 
+                // --- PERBAIKAN LABEL DATA DISINI ---
                 const data = { 
                     id: String(trxId), 
                     product: String(zemVal + " ZEM GIFT"),
                     price: finalPrice, 
                     status: "PROSES",
-                    idz_penerima: String(document.getElementById('idz-user').value),
-                    nama_zepeto: String(document.getElementById('name-user').value),
-                    catatan: String(document.getElementById('catatan-item').value || "-"),
+                    id_zepeto: String(document.getElementById('idz-user').value), // Bot Muncul: ID ZEPETO
+                    nama_akun: String(document.getElementById('name-user').value), // Bot Muncul: NAMA AKUN
+                    item_request: String(document.getElementById('catatan-item').value || "-"), // Bot Muncul: ITEM REQUEST
                     wa_pembeli: "+62" + String(document.getElementById('wa-user').value),
-                    email: String(document.getElementById('email-user').value),
+                    email_kontak: String(document.getElementById('email-user').value),
                     metode: String(window.chosenMethod),
                     bukti_bayar: imgBukti64,
                     foto_item: imgItem64, 
                     date: new Date().toLocaleString('id-ID')
                 };
                 
-                // 1. Simpan ke Firebase Database
                 await set(ref(db, 'transactions/' + trxId), data);
                 
-                // 2. Simpan ke Riwayat Lokal
                 let history = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
                 history.unshift(data);
                 localStorage.setItem('zepetoHistory', JSON.stringify(history));
 
-                // 3. Notifikasi Berhasil & Redirect
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
                     text: 'Pesanan telah masuk riwayat. Mengalihkan...',
-                    timer: 3000,
-                    timerProgressBar: true,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Ke Riwayat Sekarang'
+                    timer: 2000,
+                    showConfirmButton: false
                 }).then(() => {
                     window.location.href = 'riwayat-transaksi.html';
                 });
-
-                // Pengaman cadangan jika user tidak klik OK
-                setTimeout(() => {
-                    window.location.href = 'riwayat-transaksi.html';
-                }, 3500);
 
             } catch(e) { 
                 console.error("Firebase Error:", e);
