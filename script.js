@@ -1,25 +1,21 @@
-function kirimOrderKeDiscord(dataOrder) {
-    // URL ini sesuaikan dengan IP Server/VPS tempat Mas running index.js
-    // Kalau tes di laptop sendiri gunakan http://localhost:3000/send-order
-    fetch('http://localhost:3000/send-order', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            orderId: dataOrder.id,
-            item: dataOrder.namaProduk,
-            price: dataOrder.total,
-            customer: dataOrder.namaPembeli
-        }),
-    })
-    .then(response => response.json())
-    .then(data => console.log('Sukses:', data))
-    .catch((error) => console.error('Error:', error));
-}
+import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-// Contoh cara pakenya:
-// kirimOrderKeDiscord({ id: '123', namaProduk: 'Kopi Hitam', total: '5.000', namaPembeli: 'Mas Bro' });
+// Fungsi yang dipanggil saat user selesai bayar/klik order
+function kirimKeFirebase(idTrx, namaProduk, hargaProduk) {
+    const db = getDatabase();
+    const waktu = new Date().toLocaleString('id-ID');
+
+    const dataOrder = {
+        id: idTrx,
+        product: namaProduk,
+        price: hargaProduk,
+        date: waktu,
+        status: "PROSES" // Status awal wajib PROSES agar bot mendeteksi
+    };
+
+    // Simpan ke path 'transactions' agar terbaca bot dan riwayat-transaksi.html
+    set(ref(db, 'transactions/' + idTrx), dataOrder);
+}
 
 // 3. Kode bawaan kamu untuk merapikan URL agar tidak ada .html
 if (window.location.pathname.endsWith(".html")) {
