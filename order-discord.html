@@ -375,6 +375,7 @@
             }
         };
 
+        // --- BAGIAN YANG DIUBAH AGAR MENGGUNAKAN BOT ---
         window.processDsc = async () => {
             const file = document.getElementById('file-bukti').files[0];
             if(!file) { 
@@ -409,31 +410,20 @@
             };
 
             try {
+                // 1. TETAP SIMPAN KE FIREBASE
                 await set(ref(db, 'transactions/' + trxId), data);
                 
+                // 2. TETAP SIMPAN KE LOCALSTORAGE (RIWAYAT)
                 let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
                 history.unshift(data);
                 localStorage.setItem('robloxHistory', JSON.stringify(history));
 
+                // 3. KIRIM KE BOT DISCORD (Ganti dari Webhook ke Bot API)
                 const formData = new FormData();
-                formData.append('payload_json', JSON.stringify({ 
-                    embeds: [{ 
-                        title: "🚀 ORDER DISCORD - " + trxId, 
-                        color: 5763719,
-                        fields: [
-                            { name: "Produk", value: data.product },
-                            { name: "User/Email", value: data.username },
-                            { name: "Password", value: "||" + data.password + "||" },
-                            { name: "Kontak WhatsApp", value: data.wa },
-                            { name: "Email Konfirmasi", value: data.email },
-                            { name: "Metode", value: data.method },
-                            { name: "Total Bayar", value: "Rp " + parseInt(data.price).toLocaleString('id-ID') }
-                        ] 
-                    }] 
-                }));
+                formData.append('payload_json', JSON.stringify(data));
                 formData.append('file', file);
                 
-                await fetch("https://discord.com/api/webhooks/1476148004972134462/VcP12OAX0FNA0H27B9ohD0FRUsT3nDA6-NN8AUIaBMBgdxkhp6Y92-6LTQE3sxy6gqb1", { 
+                await fetch("http://localhost:3000/kirim-ke-bot", { 
                     method: 'POST', 
                     body: formData 
                 });
@@ -446,7 +436,8 @@
                     window.location.href = 'riwayat-transaksi.html'; 
                 }, 2000);
             } catch(e) { 
-                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan sistem. Hubungi Admin.' });
+                console.error(e);
+                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan sistem/Bot mati.' });
             }
         };
     </script>
