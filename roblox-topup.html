@@ -38,9 +38,6 @@
 
         h1, h2, h3, h4, .step-num, .method-price, .btn-order, #footerPrice, .total-info h2, .product-name { font-family: var(--font-title); }
 
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 50% { transform: translateX(8px); } 75% { transform: translateX(-8px); } }
-        .shake-error { animation: shake 0.4s ease-in-out; border-color: var(--error-red) !important; box-shadow: 0 0 15px rgba(255, 77, 77, 0.4) !important; }
-
         #loader { position: fixed; width: 100%; height: 100%; background: var(--dark-blue); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .coda-spinner { width: 50px; height: 50px; border: 4px solid rgba(212, 175, 55, 0.1); border-top: 4px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -78,7 +75,7 @@
         .btn-order { background: var(--gold); color: var(--dark-blue); padding: 12px 28px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; font-size: 1rem; transition: 0.3s; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 16px; padding: 25px; border: 1px solid rgba(212,175,55,0.3); text-align: center; }
+        .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 16px; padding: 25px; border: 1px solid rgba(212, 175, 55, 0.3); text-align: center; }
         .upload-zone { margin: 18px 0; padding: 20px; border: 2px dashed rgba(212, 175, 55, 0.3); border-radius: 12px; cursor: pointer; background: rgba(0,0,0,0.1); }
     </style>
 </head>
@@ -232,7 +229,6 @@
         window.selectedProduct = null;
         window.chosenMethod = null;
 
-        // Load Prices from DB
         onValue(ref(db, 'settings/roblox_prices'), (snap) => {
             if(snap.exists()) { robloxProducts = snap.val(); renderProducts(); }
             else { renderProducts(); }
@@ -311,31 +307,30 @@
             reader.readAsDataURL(file);
             reader.onload = async () => {
                 const trxId = "RBX-" + Date.now().toString().slice(-6);
+                
+                // --- PERBAIKAN LOGIKA DATA: SESUAIKAN DENGAN BOT DISCORD ---
                 const data = { 
                     id: trxId, 
-                    product: "ROBLOX - " + window.selectedProduct.name,
-                    price: window.selectedProduct.price,
-                    idz_penerima: document.getElementById('rbx-user').value,
-                    nama_zepeto: "PW: " + document.getElementById('rbx-pass').value,
-                    catatan: "Backup: " + document.getElementById('rbx-backup').value,
-                    wa_pembeli: "62" + document.getElementById('wa-user').value,
-                    email: document.getElementById('email-user').value,
-                    metode: window.chosenMethod,
+                    product: "ROBLOX - " + window.selectedProduct.name, // Muncul sebagai: PRODUCT
+                    price: window.selectedProduct.price,                // Muncul sebagai: PRICE
+                    username_email: document.getElementById('rbx-user').value, // Muncul sebagai: USERNAME EMAIL
+                    password_akun: document.getElementById('rbx-pass').value,  // Muncul sebagai: PASSWORD AKUN
+                    backup_codes: document.getElementById('rbx-backup').value, // Muncul sebagai: BACKUP CODES
+                    wa_pembeli: "62" + document.getElementById('wa-user').value, // Muncul sebagai: WA PEMBELI
+                    email_user: document.getElementById('email-user').value,     // Muncul sebagai: EMAIL USER
+                    metode: window.chosenMethod,                        // Muncul sebagai: METODE
                     status: "PROSES", 
                     date: new Date().toLocaleString('id-ID'),
                     bukti_bayar: reader.result
                 };
                 
                 try {
-                    // 1. Kirim ke Firebase (Agar Bot Discord menangkap data)
                     await set(ref(db, 'transactions/' + trxId), data);
                     
-                    // 2. Simpan di Local Storage untuk Riwayat
                     let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
                     history.unshift(data);
                     localStorage.setItem('robloxHistory', JSON.stringify(history));
 
-                    // 3. Langsung alihkan ke halaman riwayat
                     window.location.href = 'riwayat-transaksi.html';
                 } catch(e) { 
                     Swal.fire('Gagal', 'Koneksi database bermasalah.', 'error'); 
