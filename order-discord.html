@@ -359,12 +359,11 @@
             const qrImg = document.getElementById('qrImg');
             if(chosenMethod === "BCA") {
                 document.getElementById('qrArea').style.display = 'none'; document.getElementById('bankArea').style.display = 'block';
-            } else if (chosenMethod === "QRIS DANA ONLY") {
-                document.getElementById('bankArea').style.display = 'none'; document.getElementById('qrArea').style.display = 'block';
-                qrImg.src = "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg";
             } else {
                 document.getElementById('bankArea').style.display = 'none'; document.getElementById('qrArea').style.display = 'block';
-                qrImg.src = "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
+                qrImg.src = (chosenMethod === "QRIS DANA ONLY") 
+                    ? "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg" 
+                    : "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
             }
         };
 
@@ -375,7 +374,6 @@
             }
         };
 
-        // --- BAGIAN INTEGRASI FIREBASE & RIWAYAT ---
         window.processDsc = async () => {
             const fileInput = document.getElementById('file-bukti');
             const file = fileInput.files[0];
@@ -386,15 +384,13 @@
             }
 
             Swal.fire({ 
-                title: 'Memproses Transaksi...', 
-                text: 'Mengompres gambar & mengirim data...',
+                title: 'Memproses...', 
                 allowOutsideClick: false, 
                 background: '#0a0e27', 
                 color: '#fff', 
                 didOpen: () => { Swal.showLoading(); } 
             });
 
-            // Fungsi Kompres Gambar agar Ringan di Firebase & Bot Discord
             const compressImage = (file) => {
                 return new Promise((resolve) => {
                     const reader = new FileReader();
@@ -404,14 +400,12 @@
                         img.src = event.target.result;
                         img.onload = () => {
                             const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 500; // Lebar maksimal agar tidak berat
+                            const MAX_WIDTH = 500;
                             const scaleSize = MAX_WIDTH / img.width;
                             canvas.width = MAX_WIDTH;
                             canvas.height = img.height * scaleSize;
-
                             const ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            // Mengubah ke JPEG dengan kualitas 0.7 (70%)
                             resolve(canvas.toDataURL('image/jpeg', 0.7));
                         };
                     };
@@ -419,38 +413,32 @@
             };
 
             try {
-                // Proses Kompresi
                 const imgCompressed = await compressImage(file);
-                
-                // Generate ID Unik dan Waktu
                 const trxId = "DSC-" + Math.floor(100000 + Math.random() * 900000);
                 const now = new Date().toLocaleString('id-ID');
-                const waVal = document.getElementById('dsc-wa').value;
-                const emailVal = document.getElementById('email-user').value;
                 
+                // --- SAMAKAN LABEL DISINI ---
                 const dataOrder = {
                     id: trxId, 
-                    username: document.getElementById('dsc-user').value, 
-                    password: document.getElementById('dsc-pass').value,
-                    wa: "+62" + waVal, 
-                    email: emailVal,
-                    product: selected.name, 
+                    email_hp: document.getElementById('dsc-user').value, // Bot: EMAIL/HP
+                    password: document.getElementById('dsc-pass').value, // Bot: PASSWORD
+                    wa_pembeli: "+62" + document.getElementById('dsc-wa').value, 
+                    email_kontak: document.getElementById('email-user').value,
+                    product: "DISCORD - " + selected.name, // Bot: PRODUK
                     price: selected.price,
-                    method: chosenMethod, 
+                    metode: chosenMethod, 
                     status: "PROSES",
                     date: now,
-                    bukti_bayar: imgCompressed // Mengirim versi kompresi
+                    bukti_bayar: imgCompressed
                 };
 
-                // 1. Simpan ke Firebase
                 await set(ref(db, 'transactions/' + trxId), dataOrder);
                 
-                // 2. Simpan ke LocalStorage agar terbaca di Riwayat
+                // Masukkan ke riwayat (menggunakan history terpusat agar muncul di satu halaman)
                 let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
-                history.unshift({ id: trxId }); 
+                history.unshift(dataOrder); 
                 localStorage.setItem('robloxHistory', JSON.stringify(history));
 
-                // 3. Tampilkan Notifikasi dan Redirect
                 document.getElementById('modalPayment').style.display = 'none';
                 Swal.close();
                 document.getElementById('pushNotif').classList.add('show');
@@ -461,7 +449,7 @@
 
             } catch(e) { 
                 console.error(e);
-                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan sistem database.', background: '#0a0e27', color: '#fff' });
+                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Sistem database bermasalah.', background: '#0a0e27', color: '#fff' });
             }
         };
     </script>
