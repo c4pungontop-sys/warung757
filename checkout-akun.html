@@ -108,20 +108,15 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(5px); }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; padding: 25px; border: 1px solid var(--gold); text-align: center; position: relative; }
         .upload-zone { margin: 15px 0; padding: 15px; border: 2px dashed rgba(212, 175, 55, 0.4); border-radius: 12px; cursor: pointer; background: rgba(0,0,0,0.2); transition: 0.3s; }
-        .upload-zone:hover { background: rgba(212, 175, 55, 0.05); }
 
         .input-label { font-size: 0.75rem; color: var(--gold-light); margin-bottom: 6px; display: block; font-weight: 600; text-align: left; }
         
-        /* Shake Animation */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-4px); }
             75% { transform: translateX(4px); }
         }
-        .shake-error { 
-            animation: shake 0.2s ease-in-out 2; 
-            border-color: var(--error-red) !important;
-        }
+        .shake-error { animation: shake 0.2s ease-in-out 2; border-color: var(--error-red) !important; }
     </style>
 </head>
 <body>
@@ -174,7 +169,7 @@
                     </div>
                     <input type="number" id="contact-info" class="input-box" placeholder="8123456xxx" style="margin-bottom: 0; flex: 1;">
                 </div>
-                <p style="font-size: 0.7rem; color: var(--gold-light); opacity: 0.8;">*Akun akan dikirimkan ke kontak di atas.</p>
+                <p style="font-size: 0.7rem; color: var(--gold-light); opacity: 0.8;">*Data login akan dikirimkan ke kontak di atas.</p>
             </div>
 
             <div class="section-card" id="card-step-2">
@@ -214,7 +209,7 @@
                 <div style="background: white; padding: 12px; border-radius: 12px; display: inline-block; border: 3px solid var(--gold);">
                     <img id="qrImg" src="" style="width: 200px; display: block;">
                 </div>
-                <p style="font-size: 0.7rem; color: var(--gold-light); margin-top: 10px;">Screenshot QRIS & Scan di Aplikasi Bank/E-wallet Anda</p>
+                <p style="font-size: 0.7rem; color: var(--gold-light); margin-top: 10px;">Scan QRIS di atas melalui Bank atau E-wallet</p>
             </div>
 
             <div id="bankArea" style="display:none; padding: 15px 0; background: rgba(255,255,255,0.05); border-radius: 12px; margin: 15px 0;">
@@ -261,10 +256,9 @@
             return url;
         }
 
+        // Ambil Data Produk
         if (!accountId) {
-            Swal.fire('Error', 'ID Akun tidak ditemukan!', 'error').then(() => {
-                window.location.href = 'index.html';
-            });
+            Swal.fire('Error', 'ID Akun tidak ditemukan!', 'error').then(() => { window.location.href = 'index.html'; });
         } else {
             const accountRef = ref(db, `site_content/account_stocks/${accountId}`);
             get(accountRef).then((snapshot) => {
@@ -279,9 +273,7 @@
                     document.getElementById('wa-tanya').href = `https://wa.me/6283819531840?text=${msg}`;
                     document.getElementById('loader').style.display = 'none';
                 } else {
-                    Swal.fire('Error', 'Data akun sudah tidak tersedia.', 'error').then(() => {
-                        window.location.href = 'index.html';
-                    });
+                    Swal.fire('Error', 'Data akun sudah tidak tersedia.', 'error').then(() => { window.location.href = 'index.html'; });
                 }
             });
         }
@@ -302,113 +294,118 @@
 
         window.openPayment = () => {
             const contactInfoVal = document.getElementById('contact-info').value.trim();
-            
-            if(!contactInfoVal) {
-                triggerShake('contact-info');
-                return Swal.fire('Info', 'Harap isi nomor WhatsApp Anda!', 'warning');
-            }
-            if(!window.chosenMethod) {
-                triggerShake('card-step-2');
-                return Swal.fire('Info', 'Pilih metode pembayaran!', 'warning');
-            }
+            if(!contactInfoVal) { triggerShake('contact-info'); return Swal.fire('Info', 'Isi nomor WhatsApp Anda!', 'warning'); }
+            if(!window.chosenMethod) { triggerShake('card-step-2'); return Swal.fire('Info', 'Pilih metode pembayaran!', 'warning'); }
 
             document.getElementById('textTotal').innerText = document.getElementById('footerPrice').innerText;
             document.getElementById('modalPayment').style.display = 'flex';
 
-            const qrArea = document.getElementById('qrArea');
-            const bankArea = document.getElementById('bankArea');
-            const qrImg = document.getElementById('qrImg');
-
             if(window.chosenMethod === "BCA") {
-                qrArea.style.display = 'none';
-                bankArea.style.display = 'block';
+                document.getElementById('qrArea').style.display = 'none';
+                document.getElementById('bankArea').style.display = 'block';
             } else {
-                bankArea.style.display = 'none';
-                qrArea.style.display = 'block';
-                qrImg.src = (window.chosenMethod === "QRIS DANA ONLY") 
+                document.getElementById('bankArea').style.display = 'none';
+                document.getElementById('qrArea').style.display = 'block';
+                document.getElementById('qrImg').src = (window.chosenMethod === "QRIS DANA ONLY") 
                     ? "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg" 
                     : "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
             }
         };
 
+        // --- KOMPRESI GAMBAR AGAR TIDAK ERROR DISCORD ---
+        const compressImage = (file) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const MAX_W = 600;
+                        const scale = MAX_W / img.width;
+                        canvas.width = MAX_W;
+                        canvas.height = img.height * scale;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
+                    };
+                };
+            });
+        };
+
         window.processOrder = async () => {
             const file = document.getElementById('file-bukti').files[0];
-            if(!file) {
-                triggerShake('up-zone');
-                return Swal.fire('Wajib', 'Upload bukti transfer terlebih dahulu!', 'info');
-            }
+            if(!file) { triggerShake('up-zone'); return Swal.fire('Wajib', 'Upload bukti transfer!', 'info'); }
 
-            Swal.fire({ title: 'Mengirim...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
             const trxId = "ACC-" + Math.floor(100000 + Math.random() * 900000);
             const dateStr = new Date().toLocaleString('id-ID');
             const fullContact = "+62" + document.getElementById('contact-info').value.trim();
 
             try {
+                const imgBase64 = await compressImage(file);
+                
+                // Data untuk Firebase & Riwayat
                 const orderData = {
                     id: trxId,
-                    contact: fullContact,
-                    product: currentAccount.title,
-                    qty: parseInt(document.getElementById('buy-qty').value),
+                    wa_pembeli: fullContact,
+                    product: "AKUN: " + currentAccount.title,
                     price: currentAccount.price * (parseInt(document.getElementById('buy-qty').value) || 1),
-                    method: window.chosenMethod,
+                    metode: window.chosenMethod,
                     delivery: document.getElementById('delivery-method').value,
                     status: "DIPROSES",
-                    date: dateStr
+                    date: dateStr,
+                    bukti_bayar: imgBase64
                 };
 
                 await set(ref(db, 'transactions/' + trxId), orderData);
 
-                // Tambahkan ke Riwayat Lokal
+                // Masukkan riwayat lokal
                 let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
                 history.unshift(orderData);
                 localStorage.setItem('robloxHistory', JSON.stringify(history));
 
+                // Kirim Ke Discord
                 const formData = new FormData();
                 formData.append('payload_json', JSON.stringify({
                     embeds: [{
-                        title: "🛒 PESANAN AKUN BARU: " + trxId,
+                        title: "🛒 ORDER AKUN BARU: " + trxId,
                         color: 15844367,
                         fields: [
-                            { name: "Produk", value: currentAccount.title, inline: true },
-                            { name: "Total", value: document.getElementById('footerPrice').innerText, inline: true },
-                            { name: "Nomor WA", value: fullContact, inline: false },
+                            { name: "Nama Produk", value: currentAccount.title, inline: true },
                             { name: "Metode", value: window.chosenMethod, inline: true },
-                            { name: "Pengiriman", value: orderData.delivery, inline: true }
+                            { name: "Harga", value: document.getElementById('footerPrice').innerText, inline: true },
+                            { name: "WhatsApp", value: fullContact, inline: false },
+                            { name: "Kirim Via", value: orderData.delivery, inline: true },
+                            { name: "Detail Stok", value: "Cek Admin Panel / Stock List", inline: true }
                         ],
-                        footer: { text: "Warung 757 - Order System" }
+                        footer: { text: "Warung 757 - Account System" }
                     }]
                 }));
                 formData.append('file', file);
                 
                 await fetch("https://discord.com/api/webhooks/1476147774486478921/96VB3pb54bQdt9jgIdru1YmpsCJjCXl9rYkM_3TOIsbh-KkGoFKfWqg6Tx5SO4P0VbpF", { 
-                    method: 'POST', 
-                    body: formData 
+                    method: 'POST', body: formData 
                 });
 
-                Swal.fire('Berhasil!', 'Pesanan Anda telah diterima admin.', 'success')
+                Swal.fire('Berhasil!', 'Pesanan diproses. Admin akan menghubungi Anda.', 'success')
                 .then(() => window.location.href = "riwayat-transaksi.html");
 
             } catch (e) {
-                Swal.fire('Gagal', 'Terjadi kesalahan sistem.', 'error');
+                console.error(e);
+                Swal.fire('Gagal', 'Terjadi kesalahan sistem database.', 'error');
             }
         };
 
         function triggerShake(id) {
             const el = document.getElementById(id);
-            if(el) {
-                el.classList.add('shake-error');
-                setTimeout(() => el.classList.remove('shake-error'), 500);
-            }
+            if(el) { el.classList.add('shake-error'); setTimeout(() => el.classList.remove('shake-error'), 500); }
         }
 
         window.zoomImage = () => {
-            Swal.fire({
-                imageUrl: document.getElementById('p-img').src,
-                showConfirmButton: false,
-                background: 'rgba(0,0,0,0.9)',
-                showCloseButton: true
-            });
+            Swal.fire({ imageUrl: document.getElementById('p-img').src, showConfirmButton: false, background: 'rgba(0,0,0,0.9)', showCloseButton: true });
         };
 
         window.showFile = (input) => {
