@@ -220,7 +220,6 @@
         window.currentTotalPrice = 0;
         window.chosenMethod = null;
 
-        // Sync Rate
         onValue(ref(db, 'settings/zvg_rate'), (snap) => {
             const rate = snap.val();
             if(rate) {
@@ -230,13 +229,12 @@
             }
         });
 
-        // UI Helpers
         window.onload = () => { setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 500); };
 
         window.calculatePrice = function() {
             const jumlahInput = document.getElementById('jumlah-zem');
-            const jumlah = jumlahInput ? jumlahInput.value : 0;
-            window.currentTotalPrice = parseInt(jumlah || 0) * window.ACTIVE_RATE;
+            const jumlah = jumlahInput ? parseInt(jumlahInput.value || 0) : 0;
+            window.currentTotalPrice = jumlah * window.ACTIVE_RATE;
             const pStr = "Rp " + window.currentTotalPrice.toLocaleString('id-ID');
             ['p-qris', 'p-bca', 'p-dana', 'footerPrice'].forEach(id => {
                 const el = document.getElementById(id);
@@ -275,8 +273,8 @@
                         if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
                         canvas.width = width; canvas.height = height;
                         ctx.drawImage(img, 0, 0, width, height);
-                        // Kualitas 0.5 agar tidak terlalu berat saat ditarik Bot Discord
-                        resolve(canvas.toDataURL('image/jpeg', 0.5));
+                        // Kualitas 0.3 agar database tidak crash saat kirim 2 foto
+                        resolve(canvas.toDataURL('image/jpeg', 0.3));
                     };
                 };
             });
@@ -293,6 +291,8 @@
                 return Swal.fire('Data Belum Lengkap', 'Harap isi semua kolom dan upload FOTO ITEM!', 'warning');
             }
 
+            // Hitung ulang sebelum buka modal
+            window.calculatePrice();
             document.getElementById('textTotal').innerText = "Rp " + window.currentTotalPrice.toLocaleString('id-ID');
             document.getElementById('modalPayment').style.display = 'flex';
             
@@ -319,16 +319,20 @@
             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
             try {
-                // Kompresi kedua gambar
+                // Kompresi foto
                 const imgBukti64 = await compressImage(fileBukti);
                 const imgItem64 = await compressImage(fileItem);
+                
+                // Pastikan harga tidak Rp 0
+                const zemVal = parseInt(document.getElementById('jumlah-zem').value || 0);
+                const finalPrice = zemVal * window.ACTIVE_RATE;
                 
                 const trxId = "ZVG-" + Math.floor(100000 + Math.random() * 900000);
                 
                 const data = { 
                     id: trxId, 
-                    product: document.getElementById('jumlah-zem').value + " ZEM GIFT",
-                    price: window.currentTotalPrice,
+                    product: zemVal + " ZEM GIFT",
+                    price: finalPrice, // Simpan harga asli (Number)
                     status: "PROSES",
                     idz_penerima: document.getElementById('idz-user').value,
                     nama_zepeto: document.getElementById('name-user').value,
@@ -336,24 +340,25 @@
                     wa_pembeli: "+62" + document.getElementById('wa-user').value,
                     email: document.getElementById('email-user').value,
                     metode: window.chosenMethod,
-                    // Sekarang mengirim dua foto dalam objek terpisah
                     bukti_bayar: imgBukti64,
                     foto_item: imgItem64, 
                     date: new Date().toLocaleString('id-ID')
                 };
                 
+                // 1. Simpan ke Firebase Database
                 await set(ref(db, 'transactions/' + trxId), data);
                 
+                // 2. Simpan ke Riwayat Lokal agar muncul di riwayat-transaksi.html
                 let history = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
                 history.unshift(data);
                 localStorage.setItem('zepetoHistory', JSON.stringify(history));
 
-                Swal.fire('Berhasil!', 'Pesanan & Foto Item telah dikirim ke admin.', 'success').then(() => {
+                Swal.fire('Berhasil!', 'Pesanan telah masuk riwayat.', 'success').then(() => {
                     window.location.href = 'riwayat-transaksi.html';
                 });
             } catch(e) { 
                 console.error(e);
-                Swal.fire('Gagal', 'Terjadi kesalahan sistem database.', 'error'); 
+                Swal.fire('Gagal', 'Terjadi kesalahan kirim data.', 'error'); 
             }
         };
     </script>
