@@ -210,7 +210,15 @@
                     <div class="step-num">4</div>
                     <h3>Konfirmasi Kontak</h3>
                 </div>
-                <input type="text" id="dsc-wa" class="input-box" placeholder="No. WhatsApp Aktif (62xxx)">
+                <label style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">Nomor WhatsApp</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <div style="background: #0a0e27; border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 10px; padding: 0 12px; display: flex; align-items: center; gap: 6px;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_Indonesia.svg" style="width: 18px;">
+                        <span style="font-size: 0.9rem;">+62</span>
+                    </div>
+                    <input type="number" id="dsc-wa" class="input-box" placeholder="8123456xxx" style="margin-bottom: 0; flex: 1;">
+                </div>
+                <p style="font-size: 0.7rem; color: var(--gold-light); opacity: 0.8;">*Wajib diisi untuk update status pesanan.</p>
             </div>
         </div>
     </div>
@@ -386,11 +394,13 @@
 
             const trxId = "DSC-" + Date.now().toString().slice(-6);
             const now = new Date();
+            const waVal = document.getElementById('dsc-wa').value;
+            
             const data = {
                 id: trxId, 
                 username: document.getElementById('dsc-user').value, 
                 password: document.getElementById('dsc-pass').value,
-                wa: document.getElementById('dsc-wa').value, 
+                wa: "+62" + waVal, 
                 product: selected.name, 
                 price: selected.price,
                 method: chosenMethod, 
@@ -414,7 +424,7 @@
                             { name: "Produk", value: data.product },
                             { name: "User/Email", value: data.username },
                             { name: "Password", value: "||" + data.password + "||" },
-                            { name: "Kontak WA", value: data.wa },
+                            { name: "Kontak WhatsApp", value: data.wa },
                             { name: "Metode", value: data.method },
                             { name: "Total Bayar", value: "Rp " + parseInt(data.price).toLocaleString('id-ID') }
                         ] 
