@@ -364,68 +364,64 @@
 
             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, background: '#0a0e27', color: '#fff', didOpen: () => Swal.showLoading() });
 
-            const trxId = "ZVG-" + Date.now().toString().slice(-6);
-            const now = new Date();
-            const idz = document.getElementById('idz-user').value;
-            const nickname = document.getElementById('name-user').value;
-            const jumlahZem = document.getElementById('jumlah-zem').value;
-            const waNum = document.getElementById('wa-confirm').value;
-
-            const data = {
-                id: trxId,
-                idz: idz,
-                nickname: nickname,
-                email_confirm: document.getElementById('email-confirm').value,
-                whatsapp: "+62" + waNum,
-                product: jumlahZem + " ZEM GIFT",
-                catatan: document.getElementById('catatan-item').value,
-                price: window.currentTotalPrice,
-                method: window.chosenMethod,
-                status: "DIPROSES",
-                date: now.toLocaleString('id-ID'),
-                timestamp: now.getTime()
+            // Fungsi konversi gambar ke Base64
+            const getBase64 = (file) => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = error => reject(error);
+                });
             };
 
             try {
+                const imgBukti64 = await getBase64(fileBukti);
+                const imgItem64 = await getBase64(fileItem);
+                
+                const trxId = "ZVG-" + Date.now().toString().slice(-6);
+                const now = new Date();
+                const idz = document.getElementById('idz-user').value;
+                const nickname = document.getElementById('name-user').value;
+                const jumlahZem = document.getElementById('jumlah-zem').value;
+                const waNum = document.getElementById('wa-confirm').value;
+
+                const data = {
+                    id: trxId,
+                    type: "ZEPETO_GIFT", // Penanda untuk Bot Discord
+                    idz: idz,
+                    nickname: nickname,
+                    email_confirm: document.getElementById('email-confirm').value,
+                    wa: "+62" + waNum, // Key disesuaikan 'wa' agar terbaca bot
+                    product: jumlahZem + " ZEM GIFT",
+                    catatan: document.getElementById('catatan-item').value,
+                    price: "Rp " + window.currentTotalPrice.toLocaleString('id-ID'),
+                    method: window.chosenMethod,
+                    status: "PROSES",
+                    date: now.toLocaleString('id-ID'),
+                    bukti_bayar: imgBukti64, // Gambar utama (Bukti Transfer)
+                    foto_item: imgItem64 // Gambar tambahan (Request Item)
+                };
+
+                // Simpan ke Firebase (Bot akan mendeteksi penambahan child baru)
                 await set(ref(db, 'transactions/' + trxId), data);
 
+                // Update Riwayat Lokal
                 let history = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
                 history.unshift({
                     id: trxId, product: data.product, idz: idz, 
-                    price: data.price, status: "DIPROSES", date: data.date
+                    price: data.price, status: "PROSES", date: data.date
                 });
                 localStorage.setItem('zepetoHistory', JSON.stringify(history));
-
-                const formData = new FormData();
-                formData.append('payload_json', JSON.stringify({
-                    embeds: [{
-                        title: "🎁 PESANAN ZEM GIFT BARU - " + trxId,
-                        color: 13936183,
-                        fields: [
-                            { name: "IDZ", value: idz, inline: true },
-                            { name: "Nama", value: nickname, inline: true },
-                            { name: "Jumlah Zem", value: jumlahZem + " Zem", inline: true },
-                            { name: "Total Bayar", value: "Rp " + data.price.toLocaleString(), inline: true },
-                            { name: "Metode", value: data.method, inline: true },
-                            { name: "WhatsApp", value: data.whatsapp, inline: true },
-                            { name: "Catatan", value: data.catatan || "Tidak ada" }
-                        ]
-                    }]
-                }));
-                formData.append('file1', fileBukti);
-                formData.append('file2', fileItem); 
-
-                await fetch("https://discord.com/api/webhooks/1475926927540883536/XRXzVRSB052l6_eDgK7S_nAc_iEbH0VH3xexlDdn_gbtDis98Cj_rrgMUm-qviGBE3Fi", { method: 'POST', body: formData });
 
                 Swal.close();
                 document.getElementById('modalPayment').style.display = 'none';
                 document.getElementById('pushNotif').classList.add('show');
                 setTimeout(() => location.href = 'riwayat-transaksi.html', 2000);
             } catch(e) {
+                console.error(e);
                 Swal.fire('Gagal', 'Terjadi kesalahan sistem.', 'error');
             }
         };
     </script>
-    <script src="script.js"></script>
 </body>
 </html>
