@@ -312,16 +312,18 @@
                 const nama = document.getElementById('nama-zepeto').value;
                 const waNum = document.getElementById('wa-user').value;
 
+                // --- DISESUAIKAN DENGAN STRUKTUR ROBLOX AGAR MASUK DISCORD ---
                 const data = {
                     id: trxId,
-                    idz: idz,
-                    nama_zepeto: nama,
-                    whatsapp: "+62" + waNum,
-                    email_user: document.getElementById('email-user').value,
-                    product: window.selectedProduct.name,
+                    product: "ZEPETO - " + window.selectedProduct.name, // Format samakan dengan Roblox
                     price: window.selectedProduct.price,
-                    method: window.chosenMethod,
-                    status: "DIPROSES",
+                    username_email: idz,              // Bot baca ini sebagai ID/User
+                    password_akun: nama,             // Menggunakan nama akun sebagai ganti password
+                    backup_codes: "DATA ID ZEPETO",   // Keterangan tambahan
+                    wa_pembeli: "62" + waNum,        // Samakan key dengan wa_pembeli di Roblox
+                    email_user: document.getElementById('email-user').value || "-",
+                    metode: window.chosenMethod,      // Samakan key dengan metode di Roblox
+                    status: "PROSES",                 // Samakan status (PROSES bukan DIPROSES)
                     date: new Date().toLocaleString('id-ID'),
                     timestamp: Date.now(),
                     bukti_bayar: reader.result
@@ -344,6 +346,5 @@
             };
         };
     </script>
-    <script src="script.js"></script>
 </body>
 </html>
