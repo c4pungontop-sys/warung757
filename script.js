@@ -1,24 +1,25 @@
-// 1. Alamat bot kamu di VynzzHost (Sudah disesuaikan dengan gambar kamu)
-const URL_BOT_DISCORD = 'http://vynzzhost-properties:8080/order-masuk';
-
-// 2. Fungsi untuk mengirim data orderan ke Bot Discord
-async function kirimOrderan(id, item, harga, nama) {
-    try {
-        await fetch(URL_BOT_DISCORD, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                order_id: id,
-                produk: item,
-                harga: harga,
-                pembeli: nama
-            })
-        });
-        alert("Pesanan terkirim ke admin!");
-    } catch (err) {
-        console.error("Gagal lapor ke bot: ", err);
-    }
+function kirimOrderKeDiscord(dataOrder) {
+    // URL ini sesuaikan dengan IP Server/VPS tempat Mas running index.js
+    // Kalau tes di laptop sendiri gunakan http://localhost:3000/send-order
+    fetch('http://localhost:3000/send-order', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            orderId: dataOrder.id,
+            item: dataOrder.namaProduk,
+            price: dataOrder.total,
+            customer: dataOrder.namaPembeli
+        }),
+    })
+    .then(response => response.json())
+    .then(data => console.log('Sukses:', data))
+    .catch((error) => console.error('Error:', error));
 }
+
+// Contoh cara pakenya:
+// kirimOrderKeDiscord({ id: '123', namaProduk: 'Kopi Hitam', total: '5.000', namaPembeli: 'Mas Bro' });
 
 // 3. Kode bawaan kamu untuk merapikan URL agar tidak ada .html
 if (window.location.pathname.endsWith(".html")) {
