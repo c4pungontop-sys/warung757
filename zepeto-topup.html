@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* CSS TETAP SAMA SEPERTI SEBELUMNYA */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --dark-blue: #0a0e27;
@@ -23,43 +22,53 @@
         }
         body { background: var(--dark-blue); background-image: radial-gradient(circle at center, #16215b 0%, #0a0e27 100%); color: var(--white); min-height: 100vh; padding-bottom: 120px; font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
         h1, h2, h3, h4, .step-num, .method-price, .btn-order, #footerPrice, .total-info h2, .product-name { font-family: var(--font-title); }
+        
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 50% { transform: translateX(8px); } 75% { transform: translateX(-8px); } }
         .shake-error { animation: shake 0.4s ease-in-out; border-color: var(--error-red) !important; box-shadow: 0 0 15px rgba(255, 77, 77, 0.4) !important; }
+        
         #loader { position: fixed; width: 100%; height: 100%; background: var(--dark-blue); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .coda-spinner { width: 50px; height: 50px; border: 4px solid rgba(212, 175, 55, 0.1); border-top: 4px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
         .header { padding: 15px 20px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(212,175,55,0.1); }
         .header h2 { font-size: 1.1rem; font-weight: 800; color: var(--gold); letter-spacing: 1px; }
+        
         .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media (min-width: 992px) { .container { grid-template-columns: 400px 1fr; } .left-side { position: sticky; top: 20px; align-self: start; } }
+        
         .section-card { background: var(--card-bg); border-radius: 12px; padding: 25px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 20px; transition: all 0.3s ease; }
         .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
         .step-num { width: 32px; height: 32px; background: var(--gold); color: var(--dark-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; }
         .step-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--white); }
+        
         .input-box { width: 100%; padding: 14px; background: #0a0e27; border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 10px; color: white; margin-bottom: 12px; outline: none; transition: 0.3s; font-family: var(--font-body); font-size: 0.9rem; }
         .input-box:focus { border-color: var(--gold); background: #000; }
+        
         .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .product-item { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; position: relative; }
         .product-item.active { border-color: var(--pink-gem); background: rgba(255, 105, 180, 0.1); }
+        
         .product-name { font-size: 0.9rem; color: var(--white); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
         .product-name i.gem-icon { color: var(--pink-gem); font-size: 0.8rem; }
         .product-name i.crown-icon { color: var(--gold); font-size: 0.8rem; }
         .product-price { font-size: 0.8rem; opacity: 0.6; }
+        
         .flash-badge { position: absolute; top: 5px; right: 5px; background: #ff4d4d; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: 800; box-shadow: 0 0 10px rgba(255, 77, 77, 0.5); z-index: 2; }
+        
         .payment-list { display: flex; flex-direction: column; gap: 10px; }
         .method-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; transition: 0.2s; }
         .method-item.active { border-color: var(--gold); background: rgba(212, 175, 55, 0.08); }
         .method-item img { height: 18px; filter: grayscale(0.2); }
         .method-price { font-weight: 600; color: var(--white); font-size: 0.95rem; }
+        
         .footer-action { position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0e27; padding: 18px 5%; border-top: 1px solid rgba(212,175,55,0.2); display: flex; justify-content: space-between; align-items: center; z-index: 1000; backdrop-filter: blur(10px); }
         .total-info p { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; margin-bottom: 2px; }
         .total-info h2 { font-size: 1.4rem; color: var(--gold); font-weight: 700; }
         .btn-order { background: var(--gold); color: var(--dark-blue); padding: 12px 28px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+        
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(5px); }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 16px; padding: 25px; border: 1px solid rgba(212, 175, 55, 0.3); text-align: center; }
         .upload-zone { margin: 18px 0; padding: 20px; border: 2px dashed rgba(212, 175, 55, 0.3); border-radius: 12px; cursor: pointer; background: rgba(0,0,0,0.2); transition: 0.3s; }
-        .notif-container { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 380px; background: white; padding: 12px; border-radius: 12px; z-index: 10000; display: flex; align-items: center; gap: 12px; transition: 0.5s; box-shadow: 0 10px 25px rgba(0,0,0,0.4); color: #333; }
-        .notif-container.show { top: 20px; }
     </style>
 </head>
 <body>
@@ -78,11 +87,9 @@
                 <p style="font-size: 0.85rem; opacity: 0.7; line-height: 1.6; margin-bottom: 18px;">
                     Topup Zem Zepeto Aman dan Terpercaya.
                     <br><strong style="color: var(--gold);">PROSES HANYA MENGGUNAKAN IDZ.</strong>
-                    <br><span style="font-size: 0.75rem; opacity: 0.8;">ESTIMASI » 5 MENIT - 30 MENIT</span>
                 </p>
                 <div style="font-size: 0.8rem; color: var(--gold-light); display: grid; gap: 6px; opacity: 0.9;">
                     <div><i class="fas fa-check-circle" style="width: 20px;"></i> Legal & 100% Anti Banned</div>
-                    <div><i class="fas fa-bolt" style="width: 20px;"></i> Pengiriman Instant</div>
                 </div>
             </div>
         </div>
@@ -131,23 +138,7 @@
                     <div class="step-num">4</div>
                     <h3>Konfirmasi Kontak</h3>
                 </div>
-                <label style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">Email</label>
-                <input type="email" id="email-confirm" class="input-box" placeholder="example@gmail.com">
-                
-                <label style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">No. WhatsApp</label>
-                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                    <div style="background: #0a0e27; border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 10px; padding: 0 12px; display: flex; align-items: center; gap: 6px;">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_Indonesia.svg" style="width: 18px;">
-                        <span style="font-size: 0.9rem;">+62</span>
-                    </div>
-                    <input type="number" id="wa-confirm" class="input-box" placeholder="8123456xxx" style="margin-bottom: 0; flex: 1;">
-                </div>
-                <p style="font-size: 0.7rem; color: var(--error-red); margin-bottom: 15px; font-style: italic;">**Nomor ini akan dihubungi jika terjadi masalah</p>
-                
-                <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.05);">
-                    <i class="fas fa-info-circle" style="color: var(--gold); font-size: 0.9rem;"></i>
-                    <p style="font-size: 0.75rem; opacity: 0.8;">Bukti transaksi akan kami kirim ke email/wa yang kamu isi di atas.</p>
-                </div>
+                <input type="number" id="wa-confirm" class="input-box" placeholder="Nomor WhatsApp (Contoh: 8123456xxx)">
             </div>
         </div>
     </div>
@@ -164,32 +155,28 @@
         <div class="modal-content">
             <h2 style="font-size: 1.1rem; color: var(--gold); font-weight: 700;">Konfirmasi Pembayaran</h2>
             <p id="textTotal" style="font-size: 1.5rem; font-weight: 800; color: #fff; margin: 12px 0;"></p>
+            
             <div id="qrArea" style="display:none; margin: 12px 0;">
                 <div style="background: white; padding: 10px; border-radius: 12px; display: inline-block;">
                     <img id="qrImg" src="" style="width: 180px;">
                 </div>
             </div>
+            
             <div id="bankArea" style="display:none; padding: 20px 0;">
                 <h2 style="letter-spacing: 1px; color: var(--gold-light); font-size: 1.4rem;">4600518033</h2>
-                <p style="font-size: 0.9rem; font-weight: 500; opacity: 0.8;">A/N RIAN APANDI</p>
+                <p style="font-size: 0.9rem; font-weight: 500; opacity: 0.8;">A/N RIAN APANDI (BCA)</p>
             </div>
+
             <div class="upload-zone" id="up-zone" onclick="document.getElementById('file-bukti').click()">
                 <i class="fas fa-cloud-upload-alt" style="font-size: 1.8rem; color: var(--gold); margin-bottom: 8px;"></i><br>
-                <span id="up-text" style="font-size: 0.8rem; color: var(--gold-light); font-weight: 600;">Upload Bukti Bayar</span>
+                <span id="up-text" style="font-size: 0.8rem; color: var(--gold-light); font-weight: 600;">Klik Upload Bukti Bayar</span>
                 <input type="file" id="file-bukti" hidden accept="image/*" onchange="showFile(this)">
             </div>
+
             <div style="display: flex; gap: 10px;">
                 <button onclick="document.getElementById('modalPayment').style.display='none'" style="flex:1; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:white; font-size: 0.9rem;">Batal</button>
                 <button id="btn-final" onclick="processOrder()" style="flex:2; padding:12px; border-radius:10px; background:var(--gold); border:none; font-weight: 700; color:var(--dark-blue); font-size: 0.9rem;">Konfirmasi</button>
             </div>
-        </div>
-    </div>
-
-    <div class="notif-container" id="pushNotif">
-        <div style="background: var(--gold); padding: 8px; border-radius: 8px; color: var(--dark-blue);"><i class="fas fa-gem"></i></div>
-        <div class="notif-text">
-            <h4>WARUNG 757</h4>
-            <p>Transaksi sedang diproses!</p>
         </div>
     </div>
 
@@ -211,9 +198,9 @@
         window.selectedProduct = null;
         window.chosenMethod = null;
 
+        // Ambil Data Produk
         onValue(ref(db, 'settings/zepeto_prices'), (snap) => {
-            const data = snap.val();
-            zepetoProducts = data || [];
+            zepetoProducts = snap.val() || [];
             renderProducts();
         });
 
@@ -230,40 +217,25 @@
             
             zepetoProducts.forEach(p => {
                 let namaTampilan = p.name.replace(/Diamond/g, "Zem");
-                const promo = flashSaleData.find(f => f.name.toLowerCase() === p.name.toLowerCase() || f.name.toLowerCase() === namaTampilan.toLowerCase());
-                const isFlash = !!promo;
-                const finalPrice = isFlash ? promo.price : p.price;
-                const isPremium = namaTampilan.toUpperCase().includes("PREMIUM");
-                const iconClass = isPremium ? "fas fa-crown crown-icon" : "fas fa-gem gem-icon";
+                const promo = flashSaleData.find(f => f.name.toLowerCase() === p.name.toLowerCase());
+                const finalPrice = promo ? promo.price : p.price;
                 
                 const item = document.createElement('div');
-                item.className = 'product-item';
-                
-                if(window.selectedProduct && window.selectedProduct.name === namaTampilan) {
+                item.className = 'product-item' + (window.selectedProduct?.name === namaTampilan ? ' active' : '');
+                item.onclick = () => {
+                    window.selectedProduct = {id: p.id, name: namaTampilan, price: finalPrice};
+                    document.querySelectorAll('.product-item').forEach(i => i.classList.remove('active'));
                     item.classList.add('active');
-                }
-
-                const productWithPrice = {id: p.id, name: namaTampilan, price: finalPrice};
-                
-                item.onclick = () => selectProduct(productWithPrice, item);
+                    updatePriceDisplay();
+                };
                 item.innerHTML = `
-                    ${isFlash ? '<div class="flash-badge"><i class="fas fa-bolt"></i> FLASH</div>' : ''}
-                    <div class="product-name"><i class="${iconClass}"></i> ${namaTampilan}</div>
-                    <div class="product-price">
-                        ${isFlash ? `<span style="text-decoration:line-through; opacity:0.5; font-size:0.7rem;">Rp ${parseInt(p.price).toLocaleString('id-ID')}</span><br>` : ''}
-                        Rp ${parseInt(finalPrice).toLocaleString('id-ID')}
-                    </div>
+                    ${promo ? '<div class="flash-badge"><i class="fas fa-bolt"></i> FLASH</div>' : ''}
+                    <div class="product-name"><i class="fas fa-gem gem-icon"></i> ${namaTampilan}</div>
+                    <div class="product-price">Rp ${parseInt(finalPrice).toLocaleString('id-ID')}</div>
                 `;
                 grid.appendChild(item);
             });
         }
-
-        window.selectProduct = (product, el) => {
-            window.selectedProduct = product;
-            document.querySelectorAll('.product-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            updatePriceDisplay();
-        };
 
         window.selectMetode = (el, m) => {
             window.chosenMethod = m;
@@ -280,116 +252,103 @@
             document.getElementById('footerPrice').innerText = pStr;
         }
 
-        window.onload = () => { setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 1000); };
-
-        function triggerShake(id) {
-            const el = document.getElementById(id);
-            if(el) {
-                el.classList.add('shake-error');
-                setTimeout(() => el.classList.remove('shake-error'), 400);
-            }
-        }
-
         window.openPayment = () => {
-            const idz = document.getElementById('idz-user').value;
-            const nama = document.getElementById('nama-zepeto').value;
-            const email = document.getElementById('email-confirm').value;
-            const wa = document.getElementById('wa-confirm').value;
-
-            if(!idz || !nama) return triggerShake('card-step-1');
-            if(!window.selectedProduct) return triggerShake('card-step-2');
-            if(!window.chosenMethod) return triggerShake('card-step-3');
-            if(!email || !wa) return triggerShake('card-step-4');
-
-            document.getElementById('textTotal').innerText = "Rp " + parseInt(window.selectedProduct.price).toLocaleString('id-ID');
+            if(!document.getElementById('idz-user').value || !window.selectedProduct || !window.chosenMethod || !document.getElementById('wa-confirm').value) {
+                Swal.fire('Info', 'Lengkapi semua data terlebih dahulu!', 'warning');
+                return;
+            }
+            document.getElementById('textTotal').innerText = document.getElementById('footerPrice').innerText;
             document.getElementById('modalPayment').style.display = 'flex';
 
+            const qrArea = document.getElementById('qrArea');
+            const bankArea = document.getElementById('bankArea');
             const qrImg = document.getElementById('qrImg');
+
             if(window.chosenMethod === "BCA") {
-                document.getElementById('qrArea').style.display = 'none';
-                document.getElementById('bankArea').style.display = 'block';
-            } else if (window.chosenMethod === "QRIS DANA ONLY") {
-                document.getElementById('bankArea').style.display = 'none';
-                document.getElementById('qrArea').style.display = 'block';
-                qrImg.src = "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg";
+                qrArea.style.display = 'none';
+                bankArea.style.display = 'block';
             } else {
-                document.getElementById('bankArea').style.display = 'none';
-                document.getElementById('qrArea').style.display = 'block';
-                qrImg.src = "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
+                bankArea.style.display = 'none';
+                qrArea.style.display = 'block';
+                qrImg.src = (window.chosenMethod === "QRIS DANA ONLY") 
+                    ? "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg" 
+                    : "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
             }
         };
 
         window.showFile = (input) => {
             if(input.files[0]) {
-                document.getElementById('up-text').innerText = "✓ " + input.files[0].name;
-                document.getElementById('up-zone').style.borderColor = "#00ff88";
+                document.getElementById('up-text').innerText = "✅ " + input.files[0].name;
+                document.getElementById('up-zone').style.borderColor = "#d4af37";
             }
+        };
+
+        // --- KOMPRESI GAMBAR (SAMA DENGAN CHECKOUT LAIN) ---
+        const compressImage = (file) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const MAX_W = 600;
+                        const scale = MAX_W / img.width;
+                        canvas.width = MAX_W;
+                        canvas.height = img.height * scale;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
+                    };
+                };
+            });
         };
 
         window.processOrder = async () => {
-            const fileBukti = document.getElementById('file-bukti').files[0];
-            if(!fileBukti) return triggerShake('up-zone');
+            const file = document.getElementById('file-bukti').files[0];
+            if(!file) return Swal.fire('Wajib', 'Upload bukti transfer!', 'info');
 
-            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, background: '#0a0e27', color: '#fff', didOpen: () => Swal.showLoading() });
+            Swal.fire({ title: 'Menyimpan Transaksi...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-            const trxId = "ZEP-" + Date.now().toString().slice(-6);
-            const now = new Date();
+            const trxId = "ZEP-" + Math.floor(100000 + Math.random() * 900000);
+            const dateStr = new Date().toLocaleString('id-ID');
             const idz = document.getElementById('idz-user').value;
-            const nama = document.getElementById('nama-zepeto').value;
-            const waNum = document.getElementById('wa-confirm').value;
-
-            const data = {
-                id: trxId,
-                idz: idz,
-                nama_zepeto: nama,
-                email_confirm: document.getElementById('email-confirm').value,
-                whatsapp: "+62" + waNum,
-                product: window.selectedProduct.name,
-                price: window.selectedProduct.price,
-                method: window.chosenMethod,
-                status: "DIPROSES",
-                date: now.toLocaleString('id-ID'),
-                timestamp: now.getTime()
-            };
+            const wa = "+62" + document.getElementById('wa-confirm').value;
 
             try {
-                await set(ref(db, 'transactions/' + trxId), data);
+                const imgBase64 = await compressImage(file);
+                
+                const orderData = {
+                    id: trxId,
+                    idz: idz,
+                    nama_zepeto: document.getElementById('nama-zepeto').value,
+                    wa_pembeli: wa,
+                    product: window.selectedProduct.name,
+                    price: window.selectedProduct.price,
+                    metode: window.chosenMethod,
+                    status: "DIPROSES",
+                    date: dateStr,
+                    bukti_bayar: imgBase64
+                };
 
+                // SIMPAN KE FIREBASE
+                await set(ref(db, 'transactions/' + trxId), orderData);
+
+                // SIMPAN KE RIWAYAT LOKAL (Zepeto History)
                 let history = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
-                history.unshift({
-                    id: trxId, product: data.product, idz: idz, 
-                    price: data.price, status: "DIPROSES", date: data.date
-                });
+                history.unshift(orderData);
                 localStorage.setItem('zepetoHistory', JSON.stringify(history));
 
-                const formData = new FormData();
-                formData.append('payload_json', JSON.stringify({
-                    embeds: [{
-                        title: "💎 TOPUP ZEPETO BARU - " + trxId,
-                        color: 16738740,
-                        fields: [
-                            { name: "IDZ", value: idz, inline: true },
-                            { name: "Nama Akun", value: nama, inline: true },
-                            { name: "Produk", value: data.product, inline: true },
-                            { name: "Total Bayar", value: "Rp " + data.price.toLocaleString(), inline: true },
-                            { name: "Metode", value: data.method, inline: true },
-                            { name: "WhatsApp", value: data.whatsapp, inline: true }
-                        ]
-                    }]
-                }));
-                formData.append('file1', fileBukti);
+                Swal.fire('Berhasil!', 'Pesanan Anda telah dicatat.', 'success')
+                .then(() => window.location.href = "riwayat-transaksi.html");
 
-                await fetch("https://discord.com/api/webhooks/1475926927540883536/XRXzVRSB052l6_eDgK7S_nAc_iEbH0VH3xexlDdn_gbtDis98Cj_rrgMUm-qviGBE3Fi", { method: 'POST', body: formData });
-
-                Swal.close();
-                document.getElementById('modalPayment').style.display = 'none';
-                document.getElementById('pushNotif').classList.add('show');
-                setTimeout(() => location.href = 'riwayat-transaksi.html', 2000);
-            } catch(e) {
+            } catch (e) {
                 Swal.fire('Gagal', 'Terjadi kesalahan sistem.', 'error');
             }
         };
+
+        window.onload = () => { document.getElementById('loader').style.display = 'none'; };
     </script>
-    <script src="script.js"></script>
 </body>
 </html>
