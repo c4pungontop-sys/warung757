@@ -275,6 +275,7 @@
                         if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
                         canvas.width = width; canvas.height = height;
                         ctx.drawImage(img, 0, 0, width, height);
+                        // Kualitas 0.5 agar tidak terlalu berat saat ditarik Bot Discord
                         resolve(canvas.toDataURL('image/jpeg', 0.5));
                     };
                 };
@@ -286,10 +287,10 @@
             const nick = document.getElementById('name-user').value;
             const zem = document.getElementById('jumlah-zem').value;
             const wa = document.getElementById('wa-user').value;
-            const file = document.getElementById('item-photo').files[0];
+            const fileItem = document.getElementById('item-photo').files[0];
 
-            if(!idz || !nick || !zem || !wa || !file || !window.chosenMethod) {
-                return Swal.fire('Data Belum Lengkap', 'Harap isi semua kolom dan upload foto item!', 'warning');
+            if(!idz || !nick || !zem || !wa || !fileItem || !window.chosenMethod) {
+                return Swal.fire('Data Belum Lengkap', 'Harap isi semua kolom dan upload FOTO ITEM!', 'warning');
             }
 
             document.getElementById('textTotal').innerText = "Rp " + window.currentTotalPrice.toLocaleString('id-ID');
@@ -311,12 +312,17 @@
 
         window.processOrder = async function() {
             const fileBukti = document.getElementById('file-bukti').files[0];
+            const fileItem = document.getElementById('item-photo').files[0];
+            
             if(!fileBukti) return Swal.fire('Error', 'Upload bukti bayar dulu!', 'error');
             
             Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
             try {
-                const img64 = await compressImage(fileBukti);
+                // Kompresi kedua gambar
+                const imgBukti64 = await compressImage(fileBukti);
+                const imgItem64 = await compressImage(fileItem);
+                
                 const trxId = "ZVG-" + Math.floor(100000 + Math.random() * 900000);
                 
                 const data = { 
@@ -330,7 +336,9 @@
                     wa_pembeli: "+62" + document.getElementById('wa-user').value,
                     email: document.getElementById('email-user').value,
                     metode: window.chosenMethod,
-                    bukti_bayar: img64,
+                    // Sekarang mengirim dua foto dalam objek terpisah
+                    bukti_bayar: imgBukti64,
+                    foto_item: imgItem64, 
                     date: new Date().toLocaleString('id-ID')
                 };
                 
@@ -340,12 +348,12 @@
                 history.unshift(data);
                 localStorage.setItem('zepetoHistory', JSON.stringify(history));
 
-                Swal.fire('Berhasil!', 'Pesanan sedang dikirim ke admin.', 'success').then(() => {
+                Swal.fire('Berhasil!', 'Pesanan & Foto Item telah dikirim ke admin.', 'success').then(() => {
                     window.location.href = 'riwayat-transaksi.html';
                 });
             } catch(e) { 
                 console.error(e);
-                Swal.fire('Gagal', 'Sistem sedang sibuk.', 'error'); 
+                Swal.fire('Gagal', 'Terjadi kesalahan sistem database.', 'error'); 
             }
         };
     </script>
