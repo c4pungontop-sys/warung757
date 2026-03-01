@@ -68,8 +68,6 @@
         .product-name { font-size: 0.9rem; color: var(--white); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
         .product-name img { width: 16px; }
 
-        .flash-badge { position: absolute; top: 5px; right: 5px; background: #ff4d4d; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: 800; box-shadow: 0 0 10px rgba(255, 77, 77, 0.5); }
-
         .payment-list { display: flex; flex-direction: column; gap: 10px; }
         .method-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; cursor: pointer; transition: 0.2s; }
         .method-item.active { border-color: var(--gold); background: rgba(212, 175, 55, 0.08); }
@@ -82,9 +80,6 @@
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; backdrop-filter: blur(5px); }
         .modal-content { background: var(--card-bg); width: 100%; max-width: 380px; border-radius: 16px; padding: 25px; border: 1px solid rgba(212,175,55,0.3); text-align: center; }
         .upload-zone { margin: 18px 0; padding: 20px; border: 2px dashed rgba(212, 175, 55, 0.3); border-radius: 12px; cursor: pointer; background: rgba(0,0,0,0.1); }
-
-        .notif-container { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 380px; background: white; padding: 12px; border-radius: 12px; z-index: 10000; display: flex; align-items: center; gap: 12px; transition: 0.5s; box-shadow: 0 10px 25px rgba(0,0,0,0.4); color: #333; }
-        .notif-container.show { top: 20px; }
     </style>
 </head>
 <body>
@@ -173,7 +168,6 @@
                 </div>
                 <label style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">Alamat Email</label>
                 <input type="email" id="email-user" class="input-box" placeholder="nama@email.com">
-                <p style="font-size: 0.7rem; color: var(--gold-light); opacity: 0.8;">*Wajib diisi untuk update status pesanan.</p>
             </div>
         </div>
     </div>
@@ -199,7 +193,6 @@
             <div id="bankArea" style="display:none; padding: 20px 0;">
                 <h2 style="letter-spacing: 1px; color: var(--gold-light);">4600518033</h2>
                 <p style="color: white; font-weight: 600;">A/N RIAN APANDI</p>
-                <p style="font-size: 0.7rem; color: #aaa; margin-top: 5px;">Transfer ke rekening BCA di atas</p>
             </div>
             <div class="upload-zone" id="up-zone" onclick="document.getElementById('file-bukti').click()">
                 <i class="fas fa-cloud-upload-alt" style="color: var(--gold); font-size: 1.5rem; margin-bottom: 5px;"></i><br>
@@ -207,17 +200,9 @@
                 <input type="file" id="file-bukti" hidden accept="image/*" onchange="showFile(this)">
             </div>
             <div style="display: flex; gap: 10px;">
-                <button onclick="document.getElementById('modalPayment').style.display='none'" style="flex:1; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; cursor: pointer; padding: 10px;">Batal</button>
-                <button onclick="processOrder()" style="flex:2; background:var(--gold); border:none; padding:10px; border-radius:10px; font-weight:800; color: var(--dark-blue); cursor: pointer;">Konfirmasi</button>
+                <button onclick="document.getElementById('modalPayment').style.display='none'" style="flex:1; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 10px;">Batal</button>
+                <button onclick="processOrder()" style="flex:2; background:var(--gold); border:none; padding:10px; border-radius:10px; font-weight:800; color: var(--dark-blue);">Konfirmasi</button>
             </div>
-        </div>
-    </div>
-
-    <div class="notif-container" id="pushNotif">
-        <i class="fas fa-check-circle" style="color: #25d366; font-size: 1.2rem;"></i>
-        <div class="notif-text">
-            <h4 style="font-size: 0.9rem;">WARUNG 757</h4>
-            <p style="font-size: 0.8rem;">Transaksi sedang diproses!</p>
         </div>
     </div>
 
@@ -244,33 +229,13 @@
             { id: 'rbx_2000', name: '2.000 Robux', price: 320000 }
         ];
 
-        let flashSaleData = [];
         window.selectedProduct = null;
         window.chosenMethod = null;
 
-        window.togglePassword = () => {
-            const input = document.getElementById('rbx-pass');
-            const icon = document.querySelector('.toggle-pass');
-            if(input.type === "password") {
-                input.type = "text";
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = "password";
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        };
-
+        // Load Prices from DB
         onValue(ref(db, 'settings/roblox_prices'), (snap) => {
-            if(snap.exists()) {
-                robloxProducts = snap.val();
-                renderProducts();
-            }
-        });
-
-        onValue(ref(db, 'site_content/promos'), (promoSnap) => {
-            const data = promoSnap.val();
-            flashSaleData = data ? Object.values(data) : [];
-            renderProducts();
+            if(snap.exists()) { robloxProducts = snap.val(); renderProducts(); }
+            else { renderProducts(); }
         });
 
         function renderProducts() {
@@ -278,25 +243,12 @@
             if(!grid) return;
             grid.innerHTML = '';
             robloxProducts.forEach(p => {
-                const promo = flashSaleData.find(f => f.name.toLowerCase() === p.name.toLowerCase());
-                const isFlash = !!promo;
-                const finalPrice = isFlash ? promo.price : p.price;
-
-                const priceHTML = isFlash 
-                    ? `<div class="product-price">
-                        <span style="text-decoration: line-through; font-size: 0.7rem; opacity: 0.5; display: block;">Rp ${p.price.toLocaleString('id-ID')}</span>
-                        Rp ${finalPrice.toLocaleString('id-ID')}
-                       </div>`
-                    : `<div class="product-price">Rp ${finalPrice.toLocaleString('id-ID')}</div>`;
-
                 const item = document.createElement('div');
                 item.className = 'product-item';
-                const productWithPrice = {...p, price: finalPrice};
-                item.onclick = () => selectProduct(productWithPrice, item);
+                item.onclick = () => selectProduct(p, item);
                 item.innerHTML = `
-                    ${isFlash ? '<div class="flash-badge">FLASH</div>' : ''}
                     <div class="product-name"><img src="https://i.ibb.co.com/S45mRNn7/Robux-2019-Logo-gold-svg-1.png">${p.name}</div>
-                    ${priceHTML}
+                    <div class="product-price">Rp ${p.price.toLocaleString('id-ID')}</div>
                 `;
                 grid.appendChild(item);
             });
@@ -317,35 +269,22 @@
 
         function updatePriceDisplay() {
             const pStr = window.selectedProduct ? "Rp " + window.selectedProduct.price.toLocaleString('id-ID') : "Rp -";
-            document.getElementById('p-qris').innerText = pStr;
-            document.getElementById('p-bca').innerText = pStr;
-            document.getElementById('p-dana').innerText = pStr;
             document.getElementById('footerPrice').innerText = pStr;
         }
 
         window.onload = () => { setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 500); };
 
-        function triggerShake(elementId) {
-            const el = document.getElementById(elementId);
-            el.classList.add('shake-error');
-            setTimeout(() => { el.classList.remove('shake-error'); }, 400);
-        }
+        window.togglePassword = () => {
+            const input = document.getElementById('rbx-pass');
+            const icon = document.querySelector('.toggle-pass');
+            input.type = input.type === "password" ? "text" : "password";
+            icon.classList.toggle('fa-eye-slash');
+        };
 
         window.openPayment = () => {
-            const user = document.getElementById('rbx-user').value;
-            const pass = document.getElementById('rbx-pass').value;
-            const backup = document.getElementById('rbx-backup').value;
-            const wa = document.getElementById('wa-user').value;
-            const email = document.getElementById('email-user').value;
-
-            let isValid = true;
-            if(!user || !pass || !backup) { triggerShake('card-step-1'); isValid = false; }
-            if(!window.selectedProduct) { triggerShake('card-step-2'); isValid = false; }
-            if(!window.chosenMethod) { triggerShake('card-step-3'); isValid = false; }
-            if(!wa || !email) { triggerShake('card-step-4'); isValid = false; }
-
-            if(!isValid) return;
-
+            if(!document.getElementById('rbx-user').value || !window.selectedProduct || !window.chosenMethod || !document.getElementById('wa-user').value) {
+                return Swal.fire('Error', 'Lengkapi semua data!', 'error');
+            }
             document.getElementById('textTotal').innerText = "Rp " + window.selectedProduct.price.toLocaleString('id-ID');
             document.getElementById('modalPayment').style.display = 'flex';
             
@@ -353,72 +292,55 @@
             if(window.chosenMethod === "BCA") {
                 document.getElementById('qrArea').style.display = 'none'; 
                 document.getElementById('bankArea').style.display = 'block';
-            } else if (window.chosenMethod === "QRIS DANA ONLY") {
-                document.getElementById('bankArea').style.display = 'none'; 
-                document.getElementById('qrArea').style.display = 'block';
-                qrImg.src = "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg";
             } else {
                 document.getElementById('bankArea').style.display = 'none'; 
                 document.getElementById('qrArea').style.display = 'block';
-                qrImg.src = "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
+                qrImg.src = window.chosenMethod.includes("DANA") ? "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg" : "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
             }
         };
 
-        window.showFile = (input) => { if(input.files[0]) document.getElementById('up-text').innerText = "✓ " + input.files[0].name; };
+        window.showFile = (input) => { if(input.files[0]) document.getElementById('up-text').innerText = "✓ Gambar Terpilih"; };
 
         window.processOrder = async () => {
             const file = document.getElementById('file-bukti').files[0];
             if(!file) return Swal.fire('Error', 'Upload bukti bayar!', 'error');
             
-            Swal.fire({ title: 'Menyimpan...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             
-            const getBase64 = (file) => {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = error => reject(error);
-                });
-            };
-
-            try {
-                const imgBase64 = await getBase64(file);
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
                 const trxId = "RBX-" + Date.now().toString().slice(-6);
-                const now = new Date().toLocaleString('id-ID');
-                
-                // DATA DISINKRONKAN UNTUK BOT DISCORD AUTO-FORMAT
                 const data = { 
                     id: trxId, 
-                    product: "ROBLOX - " + window.selectedProduct.name, // Label 📦 Produk
-                    price: window.selectedProduct.price,                // Label 💰 Harga
-                    idz_penerima: document.getElementById('rbx-user').value, // Label 🆔 ID/User ID (Username)
-                    nama_zepeto: "PW: " + document.getElementById('rbx-pass').value, // Label 👤 Nama/Nick (Password)
-                    catatan: "Backup: " + document.getElementById('rbx-backup').value, // Label 📝 Catatan (Backup Codes)
-                    wa_pembeli: "62" + document.getElementById('wa-user').value, // Label 📱 WhatsApp
+                    product: "ROBLOX - " + window.selectedProduct.name,
+                    price: window.selectedProduct.price,
+                    idz_penerima: document.getElementById('rbx-user').value,
+                    nama_zepeto: "PW: " + document.getElementById('rbx-pass').value,
+                    catatan: "Backup: " + document.getElementById('rbx-backup').value,
+                    wa_pembeli: "62" + document.getElementById('wa-user').value,
                     email: document.getElementById('email-user').value,
-                    metode: window.chosenMethod,                        // Label 💳 Metode
+                    metode: window.chosenMethod,
                     status: "PROSES", 
-                    date: now,
-                    bukti_bayar: imgBase64                              // Foto Bukti
+                    date: new Date().toLocaleString('id-ID'),
+                    bukti_bayar: reader.result
                 };
                 
-                // 1. Simpan ke Firebase
-                await set(ref(db, 'transactions/' + trxId), data);
-                
-                // 2. Simpan ke Riwayat Lokal (Agar riwayat-transaksi.html bisa baca)
-                let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
-                history.unshift(data);
-                localStorage.setItem('robloxHistory', JSON.stringify(history));
+                try {
+                    // 1. Kirim ke Firebase (Agar Bot Discord menangkap data)
+                    await set(ref(db, 'transactions/' + trxId), data);
+                    
+                    // 2. Simpan di Local Storage untuk Riwayat
+                    let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
+                    history.unshift(data);
+                    localStorage.setItem('robloxHistory', JSON.stringify(history));
 
-                Swal.close();
-                document.getElementById('modalPayment').style.display = 'none';
-                document.getElementById('pushNotif').classList.add('show');
-                
-                setTimeout(() => window.location.href = 'riwayat-transaksi.html', 1500);
-            } catch(e) { 
-                console.error(e);
-                Swal.fire('Gagal', 'Terjadi kesalahan sistem database.', 'error'); 
-            }
+                    // 3. Langsung alihkan ke halaman riwayat
+                    window.location.href = 'riwayat-transaksi.html';
+                } catch(e) { 
+                    Swal.fire('Gagal', 'Koneksi database bermasalah.', 'error'); 
+                }
+            };
         };
     </script>
 </body>
