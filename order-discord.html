@@ -377,7 +377,9 @@
 
         // --- BAGIAN INTEGRASI FIREBASE & RIWAYAT ---
         window.processDsc = async () => {
-            const file = document.getElementById('file-bukti').files[0];
+            const fileInput = document.getElementById('file-bukti');
+            const file = fileInput.files[0];
+            
             if(!file) { 
                 Swal.fire({ icon: 'error', title: 'Bukti Pembayaran', text: 'Harap upload bukti transfer Anda!', background: '#0a0e27', color: '#fff' });
                 return; 
@@ -385,25 +387,40 @@
 
             Swal.fire({ 
                 title: 'Memproses Transaksi...', 
-                text: 'Harap tunggu sebentar...',
+                text: 'Mengompres gambar & mengirim data...',
                 allowOutsideClick: false, 
                 background: '#0a0e27', 
                 color: '#fff', 
                 didOpen: () => { Swal.showLoading(); } 
             });
 
-            // Fungsi untuk convert Gambar ke Link Base64 agar Bot Discord bisa baca
-            const getBase64 = (file) => {
-                return new Promise((resolve, reject) => {
+            // Fungsi Kompres Gambar agar Ringan di Firebase & Bot Discord
+            const compressImage = (file) => {
+                return new Promise((resolve) => {
                     const reader = new FileReader();
                     reader.readAsDataURL(file);
-                    reader.onload = () => resolve(reader.result);
-                    reader.onerror = error => reject(error);
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.src = event.target.result;
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 500; // Lebar maksimal agar tidak berat
+                            const scaleSize = MAX_WIDTH / img.width;
+                            canvas.width = MAX_WIDTH;
+                            canvas.height = img.height * scaleSize;
+
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            // Mengubah ke JPEG dengan kualitas 0.7 (70%)
+                            resolve(canvas.toDataURL('image/jpeg', 0.7));
+                        };
+                    };
                 });
             };
 
             try {
-                const imgBase64 = await getBase64(file);
+                // Proses Kompresi
+                const imgCompressed = await compressImage(file);
                 
                 // Generate ID Unik dan Waktu
                 const trxId = "DSC-" + Math.floor(100000 + Math.random() * 900000);
@@ -422,13 +439,13 @@
                     method: chosenMethod, 
                     status: "PROSES",
                     date: now,
-                    bukti_bayar: imgBase64 // Menambahkan bukti bayar ke database
+                    bukti_bayar: imgCompressed // Mengirim versi kompresi
                 };
 
                 // 1. Simpan ke Firebase
                 await set(ref(db, 'transactions/' + trxId), dataOrder);
                 
-                // 2. Simpan ke LocalStorage
+                // 2. Simpan ke LocalStorage agar terbaca di Riwayat
                 let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
                 history.unshift({ id: trxId }); 
                 localStorage.setItem('robloxHistory', JSON.stringify(history));
@@ -444,7 +461,7 @@
 
             } catch(e) { 
                 console.error(e);
-                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan saat memproses gambar atau database.', background: '#0a0e27', color: '#fff' });
+                Swal.fire({ icon: 'error', title: 'Gagal!', text: 'Terjadi kesalahan sistem database.', background: '#0a0e27', color: '#fff' });
             }
         };
     </script>
