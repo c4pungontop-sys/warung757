@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* CSS TETAP KONSISTEN */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --dark-blue: #0a0e27;
@@ -312,28 +311,29 @@
                 const nama = document.getElementById('nama-zepeto').value;
                 const waNum = document.getElementById('wa-user').value;
 
-                // --- DISESUAIKAN DENGAN STRUKTUR ROBLOX AGAR MASUK DISCORD ---
+                // --- DATA DISESUAIKAN AGAR BOT DISCORD TIDAK SALAH BACA ---
                 const data = {
                     id: trxId,
-                    product: "ZEPETO - " + window.selectedProduct.name, // Format samakan dengan Roblox
-                    price: window.selectedProduct.price,
-                    username_email: idz,              // Bot baca ini sebagai ID/User
-                    password_akun: nama,             // Menggunakan nama akun sebagai ganti password
-                    backup_codes: "DATA ID ZEPETO",   // Keterangan tambahan
-                    wa_pembeli: "62" + waNum,        // Samakan key dengan wa_pembeli di Roblox
+                    product: "ZEPETO - " + window.selectedProduct.name, 
+                    price: window.selectedProduct.price, // Bot baca ini sebagai harga
+                    username_email: idz,              // Bot baca sebagai ID Zepeto
+                    password_akun: nama,             // Bot baca sebagai Nama Zepeto
+                    backup_codes: "VIA IDZ",         // Catatan tambahan
+                    wa_pembeli: "62" + waNum,
                     email_user: document.getElementById('email-user').value || "-",
-                    metode: window.chosenMethod,      // Samakan key dengan metode di Roblox
-                    status: "PROSES",                 // Samakan status (PROSES bukan DIPROSES)
+                    metode: window.chosenMethod,
+                    status: "PROSES", 
                     date: new Date().toLocaleString('id-ID'),
-                    timestamp: Date.now(),
                     bukti_bayar: reader.result
+                    // field 'timestamp' dihapus dari sini supaya bot discord tidak menganggapnya sebagai harga
                 };
 
                 try {
                     await set(ref(db, 'transactions/' + trxId), data);
 
+                    // Untuk history lokal browser, kita tetap pakai timestamp agar urut
                     let history = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
-                    history.unshift(data);
+                    history.unshift({ ...data, timestamp: Date.now() });
                     localStorage.setItem('zepetoHistory', JSON.stringify(history));
 
                     Swal.close();
