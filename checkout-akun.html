@@ -112,7 +112,7 @@
 
         .input-label { font-size: 0.75rem; color: var(--gold-light); margin-bottom: 6px; display: block; font-weight: 600; text-align: left; }
         
-        /* Shake Animation yang lebih rapi */
+        /* Shake Animation */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-4px); }
@@ -160,14 +160,21 @@
                 <label class="input-label">Jumlah</label>
                 <input type="number" id="buy-qty" class="input-box" value="1" min="1" oninput="updateTotalDisplay()">
                 
-                <label class="input-label">Kirim Hasil Ke</label>
+                <label class="input-label">Metode Pengiriman</label>
                 <select id="delivery-method" class="select-box">
                     <option value="WhatsApp">Kirim via WhatsApp</option>
                     <option value="Email">Kirim via Email</option>
                 </select>
                 
-                <label class="input-label">Nomor WA / Email Anda</label>
-                <input type="text" id="contact-info" class="input-box" placeholder="Contoh: 081234567xxx">
+                <label class="input-label">Nomor WhatsApp Anda</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <div style="background: #0a0e27; border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 8px; padding: 0 12px; display: flex; align-items: center; gap: 6px;">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Flag_of_Indonesia.svg" style="width: 18px;">
+                        <span style="font-size: 0.9rem;">+62</span>
+                    </div>
+                    <input type="number" id="contact-info" class="input-box" placeholder="8123456xxx" style="margin-bottom: 0; flex: 1;">
+                </div>
+                <p style="font-size: 0.7rem; color: var(--gold-light); opacity: 0.8;">*Akun akan dikirimkan ke kontak di atas.</p>
             </div>
 
             <div class="section-card" id="card-step-2">
@@ -294,11 +301,11 @@
         };
 
         window.openPayment = () => {
-            const contactInfo = document.getElementById('contact-info');
+            const contactInfoVal = document.getElementById('contact-info').value.trim();
             
-            if(!contactInfo.value.trim()) {
+            if(!contactInfoVal) {
                 triggerShake('contact-info');
-                return Swal.fire('Info', 'Harap isi kontak Anda!', 'warning');
+                return Swal.fire('Info', 'Harap isi nomor WhatsApp Anda!', 'warning');
             }
             if(!window.chosenMethod) {
                 triggerShake('card-step-2');
@@ -318,7 +325,6 @@
             } else {
                 bankArea.style.display = 'none';
                 qrArea.style.display = 'block';
-                // Update Link Gambar sesuai permintaan
                 qrImg.src = (window.chosenMethod === "QRIS DANA ONLY") 
                     ? "https://i.ibb.co.com/n87h8ZVh/qr-ID1022167478307-25-02-26-177195989-1771959903434.jpg" 
                     : "https://i.ibb.co.com/chRN5qRT/1772040416685.png";
@@ -336,11 +342,12 @@
 
             const trxId = "ACC-" + Math.floor(100000 + Math.random() * 900000);
             const dateStr = new Date().toLocaleString('id-ID');
+            const fullContact = "+62" + document.getElementById('contact-info').value.trim();
 
             try {
-                await set(ref(db, 'transactions/' + trxId), {
+                const orderData = {
                     id: trxId,
-                    contact: document.getElementById('contact-info').value,
+                    contact: fullContact,
                     product: currentAccount.title,
                     qty: parseInt(document.getElementById('buy-qty').value),
                     price: currentAccount.price * (parseInt(document.getElementById('buy-qty').value) || 1),
@@ -348,7 +355,14 @@
                     delivery: document.getElementById('delivery-method').value,
                     status: "DIPROSES",
                     date: dateStr
-                });
+                };
+
+                await set(ref(db, 'transactions/' + trxId), orderData);
+
+                // Tambahkan ke Riwayat Lokal
+                let history = JSON.parse(localStorage.getItem('robloxHistory')) || [];
+                history.unshift(orderData);
+                localStorage.setItem('robloxHistory', JSON.stringify(history));
 
                 const formData = new FormData();
                 formData.append('payload_json', JSON.stringify({
@@ -358,8 +372,9 @@
                         fields: [
                             { name: "Produk", value: currentAccount.title, inline: true },
                             { name: "Total", value: document.getElementById('footerPrice').innerText, inline: true },
-                            { name: "Penerima", value: document.getElementById('contact-info').value, inline: false },
-                            { name: "Metode", value: window.chosenMethod, inline: true }
+                            { name: "Nomor WA", value: fullContact, inline: false },
+                            { name: "Metode", value: window.chosenMethod, inline: true },
+                            { name: "Pengiriman", value: orderData.delivery, inline: true }
                         ],
                         footer: { text: "Warung 757 - Order System" }
                     }]
@@ -372,7 +387,7 @@
                 });
 
                 Swal.fire('Berhasil!', 'Pesanan Anda telah diterima admin.', 'success')
-                .then(() => window.location.href = "index.html");
+                .then(() => window.location.href = "riwayat-transaksi.html");
 
             } catch (e) {
                 Swal.fire('Gagal', 'Terjadi kesalahan sistem.', 'error');
