@@ -54,6 +54,16 @@
         }
 
         .container { max-width: 500px; margin: 0 auto; padding: 20px; }
+        
+        /* Tombol Hapus */
+        .btn-delete-all {
+            display: block; width: 100%; padding: 10px; margin-bottom: 15px;
+            background: rgba(255, 77, 77, 0.1); border: 1px dashed var(--danger);
+            border-radius: 10px; color: var(--danger); font-size: 0.7rem;
+            font-weight: 700; cursor: pointer; transition: 0.3s;
+        }
+        .btn-delete-all:active { transform: scale(0.98); background: var(--danger); color: white; }
+
         .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
         .tab-content.active { display: block; }
 
@@ -108,6 +118,10 @@
     </div>
 
     <div class="container">
+        <button class="btn-delete-all" id="clear-history">
+            <i class="fas fa-trash-alt"></i> HAPUS SEMUA RIWAYAT
+        </button>
+
         <div id="tab-batal" class="tab-content">
             <div id="list-batal"></div>
         </div>
@@ -123,7 +137,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-        // 1. Config Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBDU-cVQatcbyA-RSM-zftZf1NH5q9fcFI",
             authDomain: "warung-757.firebaseapp.com",
@@ -135,7 +148,6 @@
         const db = getDatabase(app);
         const adminWA = "6283819531840"; 
 
-        // 2. Fungsi Tab (Global agar bisa dipanggil onclick)
         window.openTab = function(evt, tabId) {
             let i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName("tab-content");
@@ -146,13 +158,11 @@
             evt.currentTarget.classList.add("active");
         }
 
-        // 3. Fungsi Buat Card
         function createCard(data) {
             let lineClass = "line-proses"; 
             let iconClass = "fa-sync-alt fa-spin"; 
             let colorClass = "color-proses";
             
-            // Ambil status dan ubah ke Uppercase agar konsisten
             const status = String(data.status || "PROSES").toUpperCase();
 
             if(status === 'GAGAL' || status === 'BATAL' || status === 'DIBATALKAN') { 
@@ -182,31 +192,24 @@
             `;
         }
 
-        // 4. Render Data secara Realtime
         function renderHistory() {
             const trxRef = ref(db, 'transactions');
 
             onValue(trxRef, (snapshot) => {
                 const firebaseData = snapshot.val() || {};
-
-                // Ambil data lokal (HP User)
                 let roblox = JSON.parse(localStorage.getItem('robloxHistory')) || [];
                 let zepeto = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
                 
-                // Gabungkan & Bersihkan Duplikat ID
                 let combined = [...roblox, ...zepeto];
                 let myOrders = combined.filter((v,i,a)=>a.findIndex(t=>(t.id === v.id))===i);
 
-                // Pesanan terbaru di atas
                 myOrders.reverse();
 
                 let html = { proses: "", berhasil: "", batal: "" };
 
                 myOrders.forEach(localItem => {
-                    // Pakai data Firebase jika ada (supaya status terupdate otomatis), kalau ga ada pakai data lokal
                     const data = firebaseData[localItem.id] || localItem;
                     const status = String(data.status || "PROSES").toUpperCase();
-
                     const card = createCard(data);
 
                     if (status === 'GAGAL' || status === 'BATAL' || status === 'DIBATALKAN') { 
@@ -225,6 +228,15 @@
                 document.getElementById('list-berhasil').innerHTML = html.berhasil || empty;
             });
         }
+
+        // Event Listener Tombol Hapus
+        document.getElementById('clear-history').addEventListener('click', () => {
+            if (confirm("Hapus semua riwayat pesanan di perangkat ini? (Data di sistem admin tetap aman)")) {
+                localStorage.removeItem('robloxHistory');
+                localStorage.removeItem('zepetoHistory');
+                location.reload();
+            }
+        });
 
         renderHistory();
     </script>
