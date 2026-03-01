@@ -123,6 +123,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
+        // 1. Config Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBDU-cVQatcbyA-RSM-zftZf1NH5q9fcFI",
             authDomain: "warung-757.firebaseapp.com",
@@ -132,8 +133,9 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const adminWA = "6283819531840"; // Nomor WA Admin sesuai permintaan
+        const adminWA = "6283819531840"; 
 
+        // 2. Fungsi Tab (Global agar bisa dipanggil onclick)
         window.openTab = function(evt, tabId) {
             let i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName("tab-content");
@@ -144,67 +146,75 @@
             evt.currentTarget.classList.add("active");
         }
 
-        function createCard(data, type) {
-            let lineClass = ""; let iconClass = ""; let colorClass = "";
-            if(type === 'batal') { 
+        // 3. Fungsi Buat Card
+        function createCard(data) {
+            let lineClass = "line-proses"; 
+            let iconClass = "fa-sync-alt fa-spin"; 
+            let colorClass = "color-proses";
+            
+            // Ambil status dan ubah ke Uppercase agar konsisten
+            const status = String(data.status || "PROSES").toUpperCase();
+
+            if(status === 'GAGAL' || status === 'BATAL' || status === 'DIBATALKAN') { 
                 lineClass = "line-batal"; iconClass = "fa-times-circle"; colorClass = "color-batal"; 
-            } else if(type === 'proses') { 
-                lineClass = "line-proses"; iconClass = "fa-sync-alt fa-spin"; colorClass = "color-proses"; 
-            } else { 
+            } else if(status === 'BERHASIL' || status === 'SUKSES' || status === 'DONE') { 
                 lineClass = "line-berhasil"; iconClass = "fa-check-circle"; colorClass = "color-berhasil"; 
             }
 
-            // Pesan otomatis WA
-            const waMsg = encodeURIComponent(`Halo Admin Warung 757, saya ingin menanyakan status pesanan saya:\n\nID: ${data.id}\nProduk: ${data.product}\nStatus: ${data.status}`);
+            const waMsg = encodeURIComponent(`Halo Admin Warung 757, saya ingin menanyakan pesanan:\n\nID: ${data.id}\nProduk: ${data.product}\nStatus: ${status}`);
 
             return `
                 <div class="history-card">
                     <div class="status-line ${lineClass}"></div>
                     <div class="info-left">
                         <h4>${data.product}</h4>
-                        <p><i class="far fa-clock"></i> ${data.date}</p>
-                        <span class="trx-id">#${data.id.toUpperCase()}</span>
-                        <a href="https://wa.me/${adminWA}?text=${waMsg}" class="btn-wa-check">
+                        <p><i class="far fa-clock"></i> ${data.date || '-'}</p>
+                        <span class="trx-id">#${String(data.id).toUpperCase()}</span>
+                        <a href="https://wa.me/${adminWA}?text=${waMsg}" target="_blank" class="btn-wa-check">
                             <i class="fab fa-whatsapp"></i> Hubungi Admin
                         </a>
                     </div>
                     <div class="info-right">
-                        <div class="price">Rp ${(parseInt(data.price) || 0).toLocaleString('id-ID')}</div>
+                        <div class="price">Rp ${(Number(data.price) || 0).toLocaleString('id-ID')}</div>
                         <i class="fas ${iconClass} ${colorClass} icon-status"></i>
                     </div>
                 </div>
             `;
         }
 
+        // 4. Render Data secara Realtime
         function renderHistory() {
             const trxRef = ref(db, 'transactions');
 
             onValue(trxRef, (snapshot) => {
                 const firebaseData = snapshot.val() || {};
 
-                // Gabungkan riwayat dari 'robloxHistory' dan 'zepetoHistory' agar semua muncul di sini
+                // Ambil data lokal (HP User)
                 let roblox = JSON.parse(localStorage.getItem('robloxHistory')) || [];
                 let zepeto = JSON.parse(localStorage.getItem('zepetoHistory')) || [];
-                let allOrders = [...roblox, ...zepeto];
+                
+                // Gabungkan & Bersihkan Duplikat ID
+                let combined = [...roblox, ...zepeto];
+                let myOrders = combined.filter((v,i,a)=>a.findIndex(t=>(t.id === v.id))===i);
 
-                // Hapus duplikat ID jika ada
-                let myOrders = allOrders.filter((v,i,a)=>a.findIndex(t=>(t.id === v.id))===i);
-
-                // Urutkan berdasarkan waktu terbaru (asumsi ID mengandung timestamp atau data date bisa diparse)
-                myOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+                // Pesanan terbaru di atas
+                myOrders.reverse();
 
                 let html = { proses: "", berhasil: "", batal: "" };
 
                 myOrders.forEach(localItem => {
+                    // Pakai data Firebase jika ada (supaya status terupdate otomatis), kalau ga ada pakai data lokal
                     const data = firebaseData[localItem.id] || localItem;
-                    const status = data.status.toUpperCase();
+                    const status = String(data.status || "PROSES").toUpperCase();
 
-                    if (status === 'GAGAL' || status === 'DIBATALKAN') { 
-                        html.batal += createCard(data, 'batal'); 
-                    } else if (status === 'BERHASIL') { 
-                        html.berhasil += createCard(data, 'berhasil'); 
+                    const card = createCard(data);
+
+                    if (status === 'GAGAL' || status === 'BATAL' || status === 'DIBATALKAN') { 
+                        html.batal += card; 
+                    } else if (status === 'BERHASIL' || status === 'SUKSES' || status === 'DONE') { 
+                        html.berhasil += card; 
                     } else { 
-                        html.proses += createCard(data, 'proses'); 
+                        html.proses += card; 
                     }
                 });
 
@@ -218,6 +228,5 @@
 
         renderHistory();
     </script>
-    <script src="script.js"></script>
 </body>
 </html>
